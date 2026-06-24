@@ -464,11 +464,107 @@ CRISTIANO CALIXTO - SPEJM: 14219 23/06 À 30/06"></textarea>
 </div>
 </div>
 
+<script src="supabase-config.js"></script>
 <script>
 const STORAGE_BASE = "baseAutorizadosWesafer"
 const STORAGE_ACESSOS = "acessosWesaferKanban"
 
-let baseAutorizados = JSON.parse(localStorage.getItem(STORAGE_BASE) || "[]")
+let baseAutorizados = []
+
+async function supabaseListarAutorizados(){
+    const resposta = await fetch(`${SUPABASE_REST_URL}/autorizados?select=*&order=created_at.desc`, {
+        headers:supabaseHeaders()
+    });
+    if(!resposta.ok){ throw new Error("Não foi possível carregar autorizados do Supabase"); }
+    const dados = await resposta.json();
+    return dados.map(item => ({
+        id: item.id,
+        tecnico: item.tecnico || "",
+        site: item.site || "",
+        ticket: item.ticket || "",
+        periodo: item.periodo || "",
+        statusBase: item.status_base || "autorizado",
+        solicitante: item.solicitante || "",
+        empresa: item.empresa || "",
+        acao: item.acao || "",
+        origem: item.origem || "",
+        atualizadoEm: item.atualizado_em || "",
+        criadoEm: item.created_at || ""
+    }));
+}
+
+function autorizadoParaSupabase(item){
+    return {
+        tecnico: item.tecnico || "",
+        site: item.site || "",
+        ticket: item.ticket || "",
+        periodo: item.periodo || "",
+        status_base: item.statusBase || "autorizado",
+        solicitante: item.solicitante || "",
+        empresa: item.empresa || "",
+        acao: item.acao || "",
+        origem: item.origem || "autorizados",
+        atualizado_em: dataISOAgora()
+    };
+}
+
+async function supabaseSalvarBaseAutorizados(){
+    supabaseSalvarBaseAutorizados();
+
+    await fetch(`${SUPABASE_REST_URL}/autorizados?id=not.is.null`, {
+        method:"DELETE",
+        headers:supabaseHeaders("return=minimal")
+    });
+
+    if(!baseAutorizados.length){ return; }
+
+    const resposta = await fetch(`${SUPABASE_REST_URL}/autorizados`, {
+        method:"POST",
+        headers:supabaseHeaders("return=minimal"),
+        body:JSON.stringify(baseAutorizados.map(autorizadoParaSupabase))
+    });
+
+    if(!resposta.ok){ console.error("Erro ao salvar base de autorizados:", await resposta.text()); }
+}
+
+function acessoParaSupabase(acesso){
+    return {
+        id: Number(acesso.id),
+        tecnico: acesso.tecnico || "",
+        site: acesso.site || "",
+        ticket: acesso.ticket || "",
+        solicitante: acesso.solicitante || "",
+        empresa: acesso.empresa || "",
+        periodo: acesso.periodo || "",
+        acao: acesso.acao || "",
+        status: acesso.status || "aguardando",
+        origem: acesso.origem || "base_autorizados",
+        atualizado_em: dataISOAgora()
+    };
+}
+
+async function supabaseSalvarAcesso(acesso){
+    const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?on_conflict=id`, {
+        method:"POST",
+        headers:supabaseHeaders("resolution=merge-duplicates,return=minimal"),
+        body:JSON.stringify([acessoParaSupabase(acesso)])
+    });
+    if(!resposta.ok){ console.error("Erro ao salvar acesso:", await resposta.text()); }
+}
+
+async function supabaseAtualizarAcessoPorBase(item){
+    const url = `${SUPABASE_REST_URL}/acessos?tecnico=eq.${encodeURIComponent(item.tecnico)}&site=eq.${encodeURIComponent(item.site)}&ticket=eq.${encodeURIComponent(item.ticket)}`;
+    const resposta = await fetch(url, {
+        method:"PATCH",
+        headers:supabaseHeaders("return=minimal"),
+        body:JSON.stringify({
+            status:item.statusBase === "aguardando" ? "aguardando" : "liberado",
+            atualizado_em:dataISOAgora()
+        })
+    });
+    if(!resposta.ok){ console.error("Erro ao atualizar acesso pelo autorizado:", await resposta.text()); }
+}
+
 
 function normalizar(texto){
     return (texto || "")
@@ -514,7 +610,7 @@ function limparExpiradosAutomaticamente(){
     baseAutorizados = baseAutorizados.filter(item => !estaExpiradoAntesDeHoje(item))
 
     if(baseAutorizados.length !== antes){
-        localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
+        supabaseSalvarBaseAutorizados()
     }
 }
 
@@ -613,7 +709,7 @@ function importarBase(){
 
     baseAutorizados = Array.from(mapa.values())
     limparExpiradosAutomaticamente()
-    localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
+    supabaseSalvarBaseAutorizados()
 
     atualizarResumo()
     document.getElementById("listaResultados").innerHTML = ""
@@ -630,7 +726,7 @@ function limparBase(){
     }
 
     baseAutorizados = []
-    localStorage.removeItem(STORAGE_BASE)
+    supabaseSalvarBaseAutorizados()
     document.getElementById("listaBrutaAutorizados").value = ""
     document.getElementById("buscaAutorizado").value = ""
     document.getElementById("listaResultados").innerHTML = ""
@@ -732,7 +828,8 @@ function gerarAcessoAutorizado(item){
     })
 
     localStorage.setItem(STORAGE_ACESSOS, JSON.stringify(acessos))
-    mostrarToast("✅ Acesso gerado em LIBERADO")
+    supabaseSalvarAcesso(acessos[0])
+    mostrarToast("✅ Acesso gerado")
 }
 
 
@@ -758,7 +855,8 @@ function alternarStatusBase(chave){
     })
 
     localStorage.setItem(STORAGE_ACESSOS, JSON.stringify(acessos))
-    localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
+    supabaseAtualizarAcessoPorBase(item)
+    supabaseSalvarBaseAutorizados()
 
     atualizarResumo()
     pesquisarAutorizados()
@@ -774,7 +872,7 @@ function removerAutorizado(chave){
     }
 
     baseAutorizados = baseAutorizados.filter(x => chaveBase(x) !== chave)
-    localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
+    supabaseSalvarBaseAutorizados()
     atualizarResumo()
     pesquisarAutorizados()
     mostrarToast("✅ Removido da base")
@@ -1068,13 +1166,30 @@ function sincronizarBaseComAcessos(){
         }
     })
 
-    localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
+    supabaseSalvarBaseAutorizados()
 }
 
-function carregarTela(){
-    sincronizarBaseComAcessos()
-    limparExpiradosAutomaticamente()
-    atualizarResumo()
+async function carregarTela(){
+    try{
+        baseAutorizados = await supabaseListarAutorizados();
+        if(baseAutorizados.length){
+            localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados));
+        }else{
+            const backup = localStorage.getItem(STORAGE_BASE);
+            baseAutorizados = backup ? JSON.parse(backup) : [];
+        }
+    }catch(erro){
+        console.warn("Carregando autorizados do backup local:", erro);
+        const backup = localStorage.getItem(STORAGE_BASE);
+        baseAutorizados = backup ? JSON.parse(backup) : [];
+    }
+
+    if(typeof sincronizarBaseComAcessos === "function"){
+        sincronizarBaseComAcessos();
+    }
+
+    limparExpiradosAutomaticamente();
+    atualizarResumo();
 }
 
 window.addEventListener("DOMContentLoaded", carregarTela)

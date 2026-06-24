@@ -709,12 +709,117 @@
 </div>
 
 
+<script src="supabase-config.js"></script>
 <script>
 
 let acessos = []
 let modoCompacto = false
 
 const STORAGE_KEY = "acessosWesaferKanban"
+
+async function supabaseListarAcessos(){
+    const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?select=*&order=created_at.desc`, {
+        headers: supabaseHeaders()
+    });
+    if(!resposta.ok){ throw new Error("Não foi possível carregar acessos do Supabase"); }
+    const dados = await resposta.json();
+    return dados.map(item => ({
+        id: Number(item.id),
+        tecnico: item.tecnico || "",
+        site: item.site || "",
+        ticket: item.ticket || "",
+        solicitante: item.solicitante || "",
+        empresa: item.empresa || "",
+        periodo: item.periodo || "",
+        acao: item.acao || "",
+        portaOperadora: true,
+        implantacao: true,
+        operacao: false,
+        status: item.status || "aguardando",
+        origem: item.origem || "",
+        criadoEm: item.created_at || "",
+        atualizadoEm: item.atualizado_em || ""
+    }));
+}
+
+function acessoParaSupabase(acesso){
+    return {
+        id: Number(acesso.id),
+        tecnico: acesso.tecnico || "",
+        site: acesso.site || "",
+        ticket: acesso.ticket || "",
+        solicitante: acesso.solicitante || "",
+        empresa: acesso.empresa || "",
+        periodo: acesso.periodo || "",
+        acao: acesso.acao || "",
+        status: acesso.status || "aguardando",
+        origem: acesso.origem || "index",
+        atualizado_em: dataISOAgora()
+    };
+}
+
+async function supabaseSalvarAcessos(){
+    if(!acessos.length){ return; }
+    const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?on_conflict=id`, {
+        method:"POST",
+        headers:supabaseHeaders("resolution=merge-duplicates,return=minimal"),
+        body:JSON.stringify(acessos.map(acessoParaSupabase))
+    });
+    if(!resposta.ok){ console.error("Erro ao salvar acessos no Supabase:", await resposta.text()); }
+}
+
+async function supabaseExcluirAcesso(id){
+    const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?id=eq.${id}`, {
+        method:"DELETE",
+        headers:supabaseHeaders("return=minimal")
+    });
+    if(!resposta.ok){ console.error("Erro ao excluir acesso no Supabase:", await resposta.text()); }
+}
+
+async function supabaseExcluirAcessosPorStatus(status){
+    const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?status=eq.${encodeURIComponent(status)}`, {
+        method:"DELETE",
+        headers:supabaseHeaders("return=minimal")
+    });
+    if(!resposta.ok){ console.error("Erro ao limpar coluna no Supabase:", await resposta.text()); }
+}
+
+async function supabaseSalvarAutorizado(acesso, statusBase = "autorizado"){
+    const itemNovo = {
+        tecnico: acesso.tecnico || "",
+        site: acesso.site || "",
+        ticket: acesso.ticket || "",
+        periodo: acesso.periodo || "",
+        status_base: statusBase,
+        solicitante: acesso.solicitante || "",
+        empresa: acesso.empresa || "",
+        acao: acesso.acao || "",
+        origem: "acessos",
+        atualizado_em: dataISOAgora()
+    };
+
+    const busca = `${SUPABASE_REST_URL}/autorizados?select=id&tecnico=eq.${encodeURIComponent(itemNovo.tecnico)}&site=eq.${encodeURIComponent(itemNovo.site)}&ticket=eq.${encodeURIComponent(itemNovo.ticket)}`;
+    const consulta = await fetch(busca, {headers:supabaseHeaders()});
+    if(!consulta.ok){ console.error("Erro ao consultar autorizado:", await consulta.text()); return; }
+    const existentes = await consulta.json();
+
+    if(existentes.length){
+        const resposta = await fetch(`${SUPABASE_REST_URL}/autorizados?id=eq.${existentes[0].id}`, {
+            method:"PATCH",
+            headers:supabaseHeaders("return=minimal"),
+            body:JSON.stringify(itemNovo)
+        });
+        if(!resposta.ok){ console.error("Erro ao atualizar autorizado:", await resposta.text()); }
+    }else{
+        const resposta = await fetch(`${SUPABASE_REST_URL}/autorizados`, {
+            method:"POST",
+            headers:supabaseHeaders("return=minimal"),
+            body:JSON.stringify(itemNovo)
+        });
+        if(!resposta.ok){ console.error("Erro ao inserir autorizado:", await resposta.text()); }
+    }
+}
+
 
 function pegar(regex,texto){
     const match = texto.match(regex)
@@ -747,17 +852,26 @@ function ajustarSite(site){
 }
 
 function salvar(){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos));
+    supabaseSalvarAcessos();
 }
 
-function carregar(){
-    const salvo = localStorage.getItem(STORAGE_KEY)
-
-    if(salvo){
-        acessos = JSON.parse(salvo)
+async function carregar(){
+    try{
+        const dadosSupabase = await supabaseListarAcessos();
+        if(dadosSupabase.length){
+            acessos = dadosSupabase;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos));
+        }else{
+            const salvo = localStorage.getItem(STORAGE_KEY);
+            acessos = salvo ? JSON.parse(salvo) : [];
+        }
+    }catch(erro){
+        console.warn("Carregando acessos do backup local:", erro);
+        const salvo = localStorage.getItem(STORAGE_KEY);
+        acessos = salvo ? JSON.parse(salvo) : [];
     }
-
-    renderizar()
+    renderizar();
 }
 
 function abrirFormatador(){
@@ -912,6 +1026,7 @@ function salvarNaBaseAutorizados(acesso, statusBase = "autorizado"){
     }
 
     localStorage.setItem(STORAGE_BASE, JSON.stringify(base))
+    supabaseSalvarAutorizado(acesso, statusBase)
 }
 
 
@@ -985,23 +1100,19 @@ function alterarStatus(id,status){
 }
 
 function remover(id){
-    if(!confirm("Deseja remover este cartão?")){
-        return
-    }
-
-    acessos = acessos.filter(acesso => acesso.id !== id)
-    salvar()
-    renderizar()
+    if(!confirm("Deseja remover este cartão?")){ return; }
+    acessos = acessos.filter(acesso => acesso.id !== id);
+    salvar();
+    supabaseExcluirAcesso(id);
+    renderizar();
 }
 
 function limparSaida(){
-    if(!confirm("Deseja limpar todos os cartões da coluna SAÍDA?")){
-        return
-    }
-
-    acessos = acessos.filter(acesso => acesso.status !== "saida")
-    salvar()
-    renderizar()
+    if(!confirm("Deseja limpar todos os cartões da coluna SAÍDA?")){ return; }
+    acessos = acessos.filter(acesso => acesso.status !== "saida");
+    salvar();
+    supabaseExcluirAcessosPorStatus("saida");
+    renderizar();
 }
 
 function alternarCompacto(){
