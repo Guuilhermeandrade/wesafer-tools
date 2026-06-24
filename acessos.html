@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+<link rel="icon" type="image/png" href="assets/img/favicon.ico">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>CONTROLE DE ACESSOS</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css">
+
+<style>
+/* ===== CONTROLE DE ACESSOS - KANBAN COM FORMATADOR EMBUTIDO ===== */
+
+.container{
+    max-width:1500px;
+}
+
+.topo-sistema{
+    margin-bottom:18px;
+}
+
+.topo-info h1{
+    margin-bottom:6px;
+}
+
+.area{
+    padding:18px;
+}
+
+.controle-toolbar{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+    margin-bottom:14px;
+}
+
+.resumo-operacional{
+    border-radius:14px;
+    padding:12px 14px;
+    color:white;
+    box-shadow:0 8px 20px rgba(0,0,0,.18);
+    border:1px solid rgba(255,255,255,.08);
+}
+
+.resumo-operacional span{
+    display:block;
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:.8px;
+    color:#dbeafe;
+    margin-bottom:4px;
+}
+
+.resumo-operacional strong{
+    display:block;
+    font-size:24px;
+    line-height:1;
+    font-weight:900;
+}
+
+.k-aguardando{background:linear-gradient(135deg,rgba(202,138,4,.88),rgba(234,179,8,.88));}
+.k-liberado{background:linear-gradient(135deg,rgba(22,163,74,.88),rgba(34,197,94,.88));}
+.k-entrada{background:linear-gradient(135deg,rgba(37,99,235,.88),rgba(14,165,233,.88));}
+.k-saida{background:linear-gradient(135deg,rgba(71,85,105,.88),rgba(100,116,139,.88));}
+
+.busca-barra{
+    display:grid;
+    grid-template-columns:1fr auto auto;
+    gap:10px;
+    margin-bottom:14px;
+}
+
+.busca-barra input{
+    min-height:46px;
+}
+
+.btn-cinza{
+    background:linear-gradient(135deg,#475569,#64748b)!important;
+}
+
+.btn-amarelo{
+    background:linear-gradient(135deg,#ca8a04,#eab308)!important;
+}
+
+.formatador-acesso{
+    background:rgba(15,23,42,.36);
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:20px;
+    padding:16px;
+    margin-bottom:14px;
+}
+
+.formatador-acesso summary{
+    cursor:pointer;
+    color:#93c5fd;
+    font-size:13px;
+    font-weight:900;
+    margin-bottom:14px;
+}
+
+.formatador-grid{
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr;
+    gap:12px;
+}
+
+.formatador-grid .campo-full{
+    grid-column:1 / -1;
+}
+
+#chamadoBruto{
+    height:135px;
+    resize:vertical;
+}
+
+.acoes-formatador{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:14px;
+}
+
+.kanban-board{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(250px,1fr));
+    gap:12px;
+    overflow-x:auto;
+    padding-bottom:6px;
+}
+
+.kanban-coluna{
+    background:rgba(15,23,42,.46);
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:18px;
+    padding:12px;
+    min-height:440px;
+    max-height:calc(100vh - 440px);
+    overflow-y:auto;
+}
+
+.kanban-coluna.drag-over{
+    outline:2px solid rgba(56,189,248,.7);
+    background:rgba(37,99,235,.15);
+}
+
+.kanban-titulo{
+    position:sticky;
+    top:0;
+    z-index:2;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    color:#e2e8f0;
+    font-weight:900;
+    font-size:13px;
+    padding-bottom:10px;
+    background:rgba(15,23,42,.90);
+}
+
+.kanban-titulo span{
+    background:rgba(255,255,255,.10);
+    border-radius:999px;
+    padding:4px 8px;
+    font-size:11px;
+}
+
+.kanban-lista{
+    display:grid;
+    gap:10px;
+}
+
+.card-acesso{
+    background:#27272a;
+    color:#e5e7eb;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:13px;
+    padding:12px;
+    cursor:grab;
+    box-shadow:0 8px 16px rgba(0,0,0,.22);
+}
+
+.card-acesso:active{
+    cursor:grabbing;
+}
+
+.card-acesso h3{
+    font-size:13px;
+    line-height:1.35;
+    margin-bottom:8px;
+    font-weight:900;
+}
+
+.card-meta{
+    display:grid;
+    gap:4px;
+    color:#cbd5e1;
+    font-size:11px;
+    line-height:1.35;
+    margin-bottom:10px;
+}
+
+.etiqueta{
+    display:inline-flex;
+    width:max-content;
+    max-width:100%;
+    padding:4px 7px;
+    border-radius:6px;
+    font-size:10px;
+    font-weight:900;
+    color:#111827;
+    margin-bottom:8px;
+}
+
+.e-aguardando{background:#eab308;}
+.e-liberado{background:#22c55e;}
+.e-entrada{background:#3b82f6;color:white;}
+.e-saida{background:#94a3b8;}
+
+.card-botoes{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+    margin-top:8px;
+}
+
+.card-botoes button{
+    min-height:34px;
+    padding:7px 8px;
+    border-radius:9px;
+    font-size:10px;
+}
+
+.card-acesso.oculto{
+    display:none;
+}
+
+.mini-info{
+    color:#94a3b8;
+    font-size:12px;
+    margin-top:8px;
+    line-height:1.5;
+}
+
+@media(max-width:1200px){
+    .kanban-board{
+        grid-template-columns:repeat(4,270px);
+    }
+}
+
+@media(max-width:900px){
+    .controle-toolbar{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .busca-barra{
+        grid-template-columns:1fr;
+    }
+
+    .formatador-grid{
+        grid-template-columns:1fr;
+    }
+
+    .kanban-coluna{
+        max-height:none;
+    }
+}
+
+/* ===== AJUSTE FINAL TOOLTIP LATERAL ===== */
+.modal-anotacoes{
+    overflow:visible !important;
+}
+
+.modal-conteudo{
+    overflow:visible !important;
+}
+
+.tooltip-btn{
+    position:relative !important;
+    overflow:visible !important;
+}
+
+.tooltip-text{
+    opacity:0 !important;
+    visibility:hidden !important;
+    display:block !important;
+    position:absolute !important;
+    left:105% !important;
+    top:50% !important;
+    transform:translateY(-50%) !important;
+    width:380px !important;
+    min-height:140px !important;
+    background:linear-gradient(180deg,#0f172a,#020617) !important;
+    color:#fff !important;
+    border:1px solid rgba(147,197,253,.25) !important;
+    border-radius:18px !important;
+    padding:18px !important;
+    text-align:left !important;
+    font-size:14px !important;
+    line-height:1.7 !important;
+    box-shadow:0 25px 60px rgba(0,0,0,.55) !important;
+    transition:.2s !important;
+    z-index:9999999 !important;
+    white-space:normal !important;
+    pointer-events:none !important;
+}
+
+.tooltip-text::before{
+    content:"👁️ PRÉ-VISUALIZAÇÃO";
+    display:block;
+    color:#38bdf8;
+    font-size:12px;
+    font-weight:800;
+    margin-bottom:10px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.tooltip-btn:hover .tooltip-text{
+    opacity:1 !important;
+    visibility:visible !important;
+}
+
+
+/* ===== FORMULÁRIO NOVO ACESSO OCULTO QUANDO FECHADO ===== */
+#boxFormatador:not([open]){
+    display:none !important;
+}
+
+#boxFormatador summary{
+    display:none !important;
+}
+
+
+/* ===== PAINEL LATERAL DE ANOTAÇÕES ===== */
+.painel-anotacoes{
+    position:fixed;
+    top:0;
+    right:calc(-100% - 40px);
+    width:680px;
+    max-width:calc(100vw - 90px);
+    height:100vh;
+    background:linear-gradient(180deg,#0f172a,#020617);
+    border-left:1px solid rgba(147,197,253,.25);
+    box-shadow:-25px 0 70px rgba(0,0,0,.55);
+    z-index:999999;
+    padding:22px;
+    transition:right .28s ease;
+    display:flex;
+    flex-direction:column;
+}
+
+.painel-anotacoes.aberto{
+    right:0;
+}
+
+.topo-painel-anotacoes{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:16px;
+}
+
+.topo-painel-anotacoes h2{
+    color:#fff;
+    margin:0;
+    font-size:22px;
+    font-weight:900;
+}
+
+.btn-fechar-anotacoes{
+    width:40px;
+    height:40px;
+    border:none;
+    border-radius:12px;
+    background:linear-gradient(135deg,#dc2626,#ef4444)!important;
+    color:#fff;
+    font-size:18px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.corpo-painel-anotacoes{
+    display:grid;
+    grid-template-columns:230px 1fr;
+    gap:14px;
+    min-height:0;
+    flex:1;
+}
+
+.lista-anotacoes{
+    background:rgba(15,23,42,.6);
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:18px;
+    padding:10px;
+    overflow-y:auto;
+}
+
+.item-anotacao{
+    width:100%;
+    min-height:44px;
+    border:none;
+    border-radius:12px;
+    padding:10px 12px;
+    margin-bottom:8px;
+    text-align:left;
+    color:#e2e8f0;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+    background:rgba(30,41,59,.9)!important;
+    transition:.18s;
+}
+
+.item-anotacao:hover,
+.item-anotacao.ativo{
+    background:linear-gradient(135deg,#2563eb,#0ea5e9)!important;
+    color:#fff;
+    transform:translateX(2px);
+}
+
+.preview-anotacao{
+    background:rgba(15,23,42,.6);
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:18px;
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+}
+
+.preview-anotacao h3{
+    color:#93c5fd;
+    font-size:13px;
+    font-weight:900;
+    margin:0 0 12px 0;
+    letter-spacing:.8px;
+}
+
+#textoPreviewAnotacao{
+    flex:1;
+    width:100%;
+    resize:none;
+    border-radius:14px;
+    padding:14px;
+    background:#020617;
+    color:#e5e7eb;
+    border:1px solid rgba(147,197,253,.18);
+    font-size:14px;
+    line-height:1.6;
+    min-height:260px;
+}
+
+.acoes-anotacao{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:10px;
+    margin-top:12px;
+}
+
+.btn-copiar-anotacao{
+    min-height:46px;
+    background:linear-gradient(135deg,#16a34a,#22c55e)!important;
+}
+
+.btn-limpar-preview{
+    min-height:46px;
+}
+
+@media(max-width:800px){
+    .painel-anotacoes{
+        width:100%;
+        max-width:100vw;
+        right:calc(-100% - 40px);
+    }
+
+    .corpo-painel-anotacoes{
+        grid-template-columns:1fr;
+    }
+
+    .lista-anotacoes{
+        max-height:230px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="layout-sistema">
+
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <img src="assets/img/wesafer.png" alt="WE SAFER">
+    </div>
+
+
+
+<nav class="sidebar-menu">
+
+<a href="acessos.html" class="ativo">
+<span class="menu-icon">🚪</span><span class="menu-text">ACESSOS</span>
+</a>
+
+<a href="autorizados.html" >
+<span class="menu-icon">👷</span><span class="menu-text">AUTORIZADOS</span>
+</a>
+
+</nav>
+
+
+</aside>
+
+<div class="conteudo-sistema">
+
+<div class="container">
+
+<header class="topo topo-sistema">
+
+    <div class="topo-info">
+
+        <div class="badge">
+            🚪 MOURA - OPERACIONAL DE ACESSOS
+        </div>
+
+        <h1>Controle de Acessos</h1>
+
+        <p class="subtitulo">
+            Cole o chamado bruto, revise os campos e adicione o cartão. O painel salva tudo no navegador.
+        </p>
+
+    </div>
+
+    <div class="topo-logo">
+        <img src="assets/img/wesafer.png" alt="WE SAFER">
+    </div>
+
+</header>
+
+<main class="area">
+
+<div class="controle-toolbar">
+    <div class="resumo-operacional k-aguardando">
+        <span>AGUARDANDO LIBERAÇÃO</span>
+        <strong id="qtdAguardando">0</strong>
+    </div>
+
+    <div class="resumo-operacional k-liberado">
+        <span>LIBERADO</span>
+        <strong id="qtdLiberado">0</strong>
+    </div>
+
+    <div class="resumo-operacional k-entrada">
+        <span>ENTRADA</span>
+        <strong id="qtdEntrada">0</strong>
+    </div>
+
+    <div class="resumo-operacional k-saida">
+        <span>SAÍDA</span>
+        <strong id="qtdSaida">0</strong>
+    </div>
+</div>
+
+
+<div class="respostas-padrao">
+
+    <button onclick="copiarRespostaPadrao('acesso')">📢 ACESSO LIBERADO</button>
+    <button onclick="copiarRespostaPadrao('fechamento')">🎥 FECHAMENTO</button>
+    <button onclick="copiarRespostaPadrao('formulario')">📝 FORMULÁRIO</button>
+    <button onclick="abrirAnotacoes()">📋 ANOTAÇÕES</button>
+
+</div>
+
+
+<div id="painelAnotacoes" class="painel-anotacoes">
+
+    <div class="topo-painel-anotacoes">
+        <h2>📋 ANOTAÇÕES RÁPIDAS</h2>
+        <button class="btn-fechar-anotacoes" onclick="fecharAnotacoes()">✕</button>
+    </div>
+
+    <div class="corpo-painel-anotacoes">
+
+        <div id="listaAnotacoes" class="lista-anotacoes"></div>
+
+        <div class="preview-anotacao">
+            <h3 id="tituloPreviewAnotacao">PRÉ-VISUALIZAÇÃO</h3>
+
+            <textarea id="textoPreviewAnotacao" readonly placeholder="Selecione uma anotação ao lado para visualizar o texto completo..."></textarea>
+
+            <div class="acoes-anotacao">
+                <button class="btn-copiar-anotacao" onclick="copiarAnotacaoSelecionada()">📋 COPIAR TEXTO</button>
+                <button class="btn-cinza btn-limpar-preview" onclick="fecharAnotacoes()">FECHAR</button>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="busca-barra">
+    <input id="busca" placeholder="🔎 Pesquisar por técnico, site, ticket, solicitante ou empresa..." oninput="renderizar()">
+    <button onclick="abrirFormatador()">NOVO ACESSO</button>
+    <button class="btn-cinza" onclick="alternarCompacto()">MODO COMPACTO</button>
+
+</div>
+
+<details id="boxFormatador" class="formatador-acesso">
+    <summary>⚡ FORMATADOR + CRIAÇÃO DE CARTÃO</summary>
+
+    <div class="formatador-grid">
+
+        <div class="campo campo-full">
+            <label for="chamadoBruto">COLAR CHAMADO BRUTO DO GLPI</label>
+            <textarea id="chamadoBruto" placeholder="Cole aqui o chamado bruto do GLPI..."></textarea>
+        </div>
+
+        <div class="campo">
+            <label for="tecnico">TÉCNICO</label>
+            <input id="tecnico" placeholder="LEONARDO DINIZ">
+        </div>
+
+        <div class="campo">
+            <label for="site">SITE</label>
+            <input id="site" placeholder="MGPGE">
+        </div>
+
+        <div class="campo">
+            <label for="ticket">TICKET</label>
+            <input id="ticket" placeholder="14216">
+        </div>
+
+        <div class="campo">
+            <label for="solicitante">SOLICITANTE</label>
+            <input id="solicitante" placeholder="ANTENOR">
+        </div>
+
+        <div class="campo">
+            <label for="empresa">EMPRESA</label>
+            <input id="empresa" placeholder="VIVO">
+        </div>
+
+        <div class="campo">
+            <label for="periodo">PERÍODO</label>
+            <input id="periodo" placeholder="22/06 À 22/07">
+        </div>
+
+        <div class="campo campo-full">
+            <label for="acao">AÇÃO</label>
+            <input id="acao" placeholder="VISTORIA ACEITE IMPLANTAÇÃO, PRECISO DO ACESSO AMBOS LADOS. SÃO DOIS CADEADOS.">
+        </div>
+
+    </div>
+
+    <div class="acoes-formatador">
+        <button onclick="extrairChamado()">EXTRAIR DADOS</button>
+        <button class="btn-copiar" onclick="adicionarCartao()">ADICIONAR CARTÃO</button>
+        <button class="btn-limpar" onclick="limparFormulario()">LIMPAR FORMULÁRIO</button>
+        <button class="btn-cinza" onclick="limparSaida()">LIMPAR COLUNA SAÍDA</button>
+        <button class="btn-cinza" onclick="fecharFormatador()">✕ FECHAR</button>
+    </div>
+
+    <p class="mini-info">
+        Dica: depois de extrair, revise os campos antes de adicionar. Se algum dado vier errado, edite manualmente.
+    </p>
+</details>
+
+<div class="kanban-board">
+
+    <section class="kanban-coluna" data-status="aguardando">
+        <div class="kanban-titulo">🟡 AGUARDANDO LIBERAÇÃO <span id="colAguardando">0</span></div>
+        <div id="listaAguardando" class="kanban-lista"></div>
+    </section>
+
+    <section class="kanban-coluna" data-status="liberado">
+        <div class="kanban-titulo">✅ LIBERADO <span id="colLiberado">0</span></div>
+        <div id="listaLiberado" class="kanban-lista"></div>
+    </section>
+
+    <section class="kanban-coluna" data-status="entrada">
+        <div class="kanban-titulo">🔓 ENTRADA <span id="colEntrada">0</span></div>
+        <div id="listaEntrada" class="kanban-lista"></div>
+    </section>
+
+    <section class="kanban-coluna" data-status="saida">
+        <div class="kanban-titulo">🔒 SAÍDA <span id="colSaida">0</span></div>
+        <div id="listaSaida" class="kanban-lista"></div>
+    </section>
+
+</div>
+
+</main>
+
+<footer class="footer">WeSafer Produtos Digitais Ltda.</footer>
+
+</div>
+
+</div>
+</div>
+
+
+<script>
+
+let acessos = []
+let modoCompacto = false
+
+const STORAGE_KEY = "acessosWesaferKanban"
+
+function pegar(regex,texto){
+    const match = texto.match(regex)
+    return match ? match[1].trim() : ""
+}
+
+function formatarData(data){
+    if(!data) return ""
+    const partes = data.split("-")
+    return `${partes[2]}/${partes[1]}`
+}
+
+function ajustarSite(site){
+    if(!site) return ""
+    site = site.trim()
+
+    if(site.includes("_")){
+        const [sigla,estado] = site.split("_")
+        return `${estado}${sigla}`.replace(/[^A-Z0-9]/gi,"").toUpperCase()
+    }
+
+    if(site.includes("-")){
+        const partes = site.split("-")
+        if(partes.length === 2){
+            return `${partes[1]}${partes[0]}`.replace(/[^A-Z0-9]/gi,"").toUpperCase()
+        }
+    }
+
+    return site.replace(/[^A-Z0-9]/gi,"").toUpperCase()
+}
+
+function salvar(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
+}
+
+function carregar(){
+    const salvo = localStorage.getItem(STORAGE_KEY)
+
+    if(salvo){
+        acessos = JSON.parse(salvo)
+    }
+
+    renderizar()
+}
+
+function abrirFormatador(){
+    const box = document.getElementById("boxFormatador")
+
+    if(box){
+        box.open = true
+        box.setAttribute("open", "")
+    }
+
+    document.getElementById("chamadoBruto").focus()
+}
+
+function fecharFormatador(){
+    const box = document.getElementById("boxFormatador")
+
+    if(box){
+        box.open = false
+        box.removeAttribute("open")
+    }
+}
+
+function extrairChamado(){
+    const texto = document.getElementById("chamadoBruto").value
+
+    if(!texto.trim()){
+        alert("Cole o chamado bruto primeiro.")
+        return
+    }
+
+    const ticket = pegar(/\((\d+)\)/,texto)
+    const tecnico = pegar(/ome completo\s+([^\n]+)/i,texto).toUpperCase()
+    const supervisor = pegar(/Supervisor\s+([^\n]+)/i,texto).toUpperCase()
+
+    let empresa = pegar(/Empresa Solicitante\s+Empresa Solicitante\s+([^\n]+)/i,texto).toUpperCase()
+    if(!empresa){
+        empresa = pegar(/Empresa Solicitante\s+([^\n]+)/i,texto).toUpperCase()
+    }
+
+    const siteOriginal = pegar(/Site a ser Acessado\s+([^\n]+)/i,texto)
+    const siteAjustado = ajustarSite(siteOriginal)
+
+    const dataInicial = formatarData(pegar(/data inicial\s+(\d{4}-\d{2}-\d{2})/i,texto))
+    const dataFinal = formatarData(pegar(/data final\s+(\d{4}-\d{2}-\d{2})/i,texto))
+    const periodo = dataInicial && dataFinal ? `${dataInicial} À ${dataFinal}` : ""
+
+    let acao = ""
+    const linhas = texto.split("\n")
+    const indice = linhas.findIndex(l => l.toLowerCase().includes("ação a ser realizada"))
+
+    if(indice !== -1 && linhas[indice + 1]){
+        acao = linhas[indice + 1].trim()
+    }
+
+    acao = acao.toUpperCase()
+
+    if(acao && !acao.endsWith(".")){
+        acao += "."
+    }
+
+    document.getElementById("tecnico").value = tecnico
+    document.getElementById("site").value = siteAjustado
+    document.getElementById("ticket").value = ticket
+    document.getElementById("solicitante").value = supervisor
+    document.getElementById("empresa").value = empresa
+    document.getElementById("periodo").value = periodo
+    document.getElementById("acao").value = acao
+}
+
+function limparFormulario(){
+    ["chamadoBruto","tecnico","site","ticket","solicitante","empresa","periodo","acao"].forEach(id => {
+        document.getElementById(id).value = ""
+    })
+}
+
+
+function dataFinalDoPeriodo(periodo){
+    if(!periodo) return null
+
+    const match = periodo.match(/(\d{2})\/(\d{2})\s*(?:À|A|a|á|Á)\s*(\d{2})\/(\d{2})/)
+    if(!match) return null
+
+    const hoje = new Date()
+    return new Date(hoje.getFullYear(), Number(match[4]) - 1, Number(match[3]))
+}
+
+function periodoAindaValido(periodo){
+    const fim = dataFinalDoPeriodo(periodo)
+    if(!fim) return false
+
+    const hoje = new Date()
+    const hojeZerado = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate())
+
+    return fim > hojeZerado
+}
+
+function normalizarBaseAutorizado(texto){
+    return (texto || "")
+        .toString()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"")
+        .toUpperCase()
+}
+
+function salvarNaBaseAutorizados(acesso, statusBase = "autorizado"){
+    if(!acesso || !acesso.tecnico || !acesso.site || !acesso.ticket || !acesso.periodo){
+        return
+    }
+
+    if(!periodoAindaValido(acesso.periodo)){
+        return
+    }
+
+    const STORAGE_BASE = "baseAutorizadosWesafer"
+    let base = JSON.parse(localStorage.getItem(STORAGE_BASE) || "[]")
+
+    const chaveNova =
+        normalizarBaseAutorizado(acesso.tecnico) + "|" +
+        normalizarBaseAutorizado(acesso.site) + "|" +
+        acesso.ticket
+
+    const itemBase = {
+        tecnico: acesso.tecnico,
+        site: acesso.site,
+        ticket: acesso.ticket,
+        solicitante: acesso.solicitante || "",
+        empresa: acesso.empresa || "",
+        periodo: acesso.periodo || "",
+        acao: acesso.acao || "",
+        portaOperadora: acesso.portaOperadora !== false,
+        implantacao: acesso.implantacao !== false,
+        operacao: acesso.operacao === true,
+        origem: "acessos",
+        statusBase: statusBase,
+        criadoEm: new Date().toLocaleString("pt-BR"),
+        atualizadoEm: new Date().toLocaleString("pt-BR")
+    }
+
+    const index = base.findIndex(item => {
+        const chaveExistente =
+            normalizarBaseAutorizado(item.tecnico) + "|" +
+            normalizarBaseAutorizado(item.site) + "|" +
+            item.ticket
+
+        return chaveExistente === chaveNova
+    })
+
+    if(index >= 0){
+        base[index] = {...base[index], ...itemBase}
+    }else{
+        base.unshift(itemBase)
+    }
+
+    localStorage.setItem(STORAGE_BASE, JSON.stringify(base))
+}
+
+
+function adicionarCartao(){
+    const tecnico = document.getElementById("tecnico").value.trim().toUpperCase()
+    const site = document.getElementById("site").value.trim().toUpperCase()
+    const ticket = document.getElementById("ticket").value.trim()
+    const solicitante = document.getElementById("solicitante").value.trim().toUpperCase()
+    const empresa = document.getElementById("empresa").value.trim().toUpperCase()
+    const periodo = document.getElementById("periodo").value.trim().toUpperCase()
+    const acao = document.getElementById("acao").value.trim().toUpperCase()
+
+    if(!tecnico || !site || !ticket){
+        alert("Preencha pelo menos Técnico, Site e Ticket.")
+        return
+    }
+
+    const existe = acessos.some(item => item.ticket === ticket && item.site === site && item.tecnico === tecnico)
+
+    if(existe && !confirm("Esse acesso já existe. Deseja adicionar mesmo assim?")){
+        return
+    }
+
+    const novoAcesso = {
+        id: Date.now(),
+        tecnico,
+        site,
+        ticket,
+        solicitante,
+        empresa,
+        periodo,
+        acao,
+        portaOperadora: true,
+        implantacao: true,
+        operacao: false,
+        status: "aguardando",
+        criadoEm: new Date().toLocaleString("pt-BR"),
+        atualizadoEm: new Date().toLocaleString("pt-BR")
+    }
+
+    acessos.unshift(novoAcesso)
+
+
+    salvar()
+    renderizar()
+    limparFormulario()
+
+    fecharFormatador()
+}
+
+function alterarStatus(id,status){
+    acessos = acessos.map(acesso => {
+        if(acesso.id === id){
+            acesso.status = status
+            acesso.atualizadoEm = new Date().toLocaleString("pt-BR")
+
+            if(status === "liberado"){
+                salvarNaBaseAutorizados(acesso, "autorizado")
+            }
+
+            if(status === "aguardando"){
+                salvarNaBaseAutorizados(acesso, "aguardando")
+            }
+        }
+
+        return acesso
+    })
+
+    salvar()
+    renderizar()
+}
+
+function remover(id){
+    if(!confirm("Deseja remover este cartão?")){
+        return
+    }
+
+    acessos = acessos.filter(acesso => acesso.id !== id)
+    salvar()
+    renderizar()
+}
+
+function limparSaida(){
+    if(!confirm("Deseja limpar todos os cartões da coluna SAÍDA?")){
+        return
+    }
+
+    acessos = acessos.filter(acesso => acesso.status !== "saida")
+    salvar()
+    renderizar()
+}
+
+function alternarCompacto(){
+    modoCompacto = !modoCompacto
+    renderizar()
+}
+
+function etiqueta(status){
+    const mapa = {
+        aguardando: ["e-aguardando","AGUARDANDO LIBERAÇÃO"],
+        liberado: ["e-liberado","AGUARDANDO ENTRADA"],
+        entrada: ["e-entrada","EM ATENDIMENTO"],
+        saida: ["e-saida","CONCLUÍDO"]
+    }
+
+    return mapa[status]
+}
+
+
+function executarAcaoCard(id,tipo,statusDestino){
+    copiarTexto(id,tipo)
+
+    if(statusDestino){
+        alterarStatus(id,statusDestino)
+    }
+}
+
+function copiarTexto(id,tipo){
+    const acesso = acessos.find(item => item.id === id)
+
+    if(!acesso){
+        return
+    }
+
+    const portaMoura = acesso.portaOperadora ? " " : "X"
+    const operadora = acesso.portaOperadora ? "X" : " "
+    const implantacao = acesso.implantacao ? "X" : " "
+    const operacao = acesso.operacao ? "X" : " "
+
+    let texto = ""
+
+    if(tipo === "liberacao"){
+        texto =
+`Site: ${acesso.site}
+Solicitante: ${acesso.solicitante || ""}
+Técnico: ${acesso.tecnico}
+Empresa: ${acesso.empresa || ""}
+Período: ${acesso.periodo || ""}
+Porta Moura (${portaMoura}) Operadora (${operadora})
+Implantação (${implantacao}) Operação (${operacao})`
+    }
+
+    if(tipo === "entrada"){
+        texto =
+`ENTRADA 🔓
+SITE: ${acesso.site}
+TICKET: ${acesso.ticket}
+TÉCNICO: ${acesso.tecnico}
+AÇÃO: ${acesso.acao || ""}`
+    }
+
+    if(tipo === "saida"){
+        texto =
+`SAÍDA 🔒
+SITE: ${acesso.site}
+TICKET: ${acesso.ticket}
+TÉCNICO: ${acesso.tecnico}
+AÇÃO: ${acesso.acao || ""}`
+    }
+
+    navigator.clipboard.writeText(texto)
+    mostrarToast("✅ Copiado")
+}
+
+function mostrarToast(mensagem){
+    const toastAntigo = document.getElementById("toastCopiado")
+
+    if(toastAntigo){
+        toastAntigo.remove()
+    }
+
+    const toast = document.createElement("div")
+    toast.id = "toastCopiado"
+    toast.innerHTML = mensagem
+    toast.style.position = "fixed"
+    toast.style.top = "20px"
+    toast.style.right = "20px"
+    toast.style.background = "#22c55e"
+    toast.style.color = "#fff"
+    toast.style.padding = "12px 18px"
+    toast.style.borderRadius = "10px"
+    toast.style.fontWeight = "800"
+    toast.style.zIndex = "99999"
+    toast.style.boxShadow = "0 12px 28px rgba(0,0,0,.28)"
+
+    document.body.appendChild(toast)
+
+    setTimeout(() => {
+        toast.remove()
+    }, 1500)
+}
+
+
+function copiarRespostaPadrao(tipo){
+
+    let texto = ""
+
+    if(tipo === "acesso"){
+        texto = `📢 LEIA COM ATENÇÃO
+
+✅ ACESSO LIBERADO!
+
+SITE:
+
+Por gentileza, ao acessar o gabinete pelo aplicativo RedSquare, siga os passos abaixo:
+
+📸 ABERTURA: Envie uma foto mostrando o gabinete aberto.
+
+🎥 FECHAMENTO: Após concluir o serviço, envie uma foto do interior do gabinete antes de fechá-lo. Grave um vídeo curto mostrando o fechamento completo do gabinete.
+
+⚠️ Esses registros são obrigatórios e servem para comprovar que o procedimento foi realizado corretamente.
+
+⚠️ IMPORTANTE:
+Ao realizar a abertura ou o fechamento do gabinete, é obrigatório aguardar que o ciclo no aplicativo RedSquare seja concluído até o final, antes de fechar o aplicativo.
+
+🔑 App RedSquare
+USUÁRIO:
+SENHA:
+
+Esse procedimento acima é indispensável. Qualquer dúvida pode me chamar.
+
+📝 Observação: Informo que, a pedido da equipe Moura, o preenchimento do gabinete deverá ser realizado de cima para baixo.`
+    }
+
+    if(tipo === "fechamento"){
+        texto = `🎥 FECHAMENTO:
+
+Após concluir o serviço, envie uma foto do interior do gabinete antes de fechá-lo e grave um vídeo curto mostrando o fechamento completo.
+
+Por favor, não esqueça de realizar o procedimento informado ao sair e aguardar a liberação do local. Obrigado.`
+    }
+
+    if(tipo === "formulario"){
+        texto = `Liberação de Acesso – Cadeado do Site
+
+Para que possamos realizar a liberação, é necessário preencher o formulário no link abaixo.
+
+🔗 https://glpimecs.grupomoura.com/marketplace/formcreator/front/formdisplay.php?id=1`
+    }
+
+    navigator.clipboard.writeText(texto)
+    mostrarToast("✅ Copiado")
+}
+
+function copiarTextoLivre(texto){
+    navigator.clipboard.writeText(texto)
+    mostrarToast("✅ Copiado")
+}
+
+const anotacoesRapidas = [
+    {
+        titulo:"💬 Bom dia - técnico",
+        texto:"Bom dia, posso prosseguir com a liberação do técnico mencionado acima?"
+    },
+    {
+        titulo:"💬 Boa tarde - técnico",
+        texto:"Boa tarde, posso prosseguir com a liberação do técnico mencionado acima?"
+    },
+    {
+        titulo:"💬 Bom dia - técnicos",
+        texto:"Bom dia, posso prosseguir com a liberação dos técnicos mencionados acima?"
+    },
+    {
+        titulo:"🔓 Liberado manutenção",
+        texto:"Bom dia! Liberado para manutenção, conforme aprovação pré-validada."
+    },
+    {
+        titulo:"👤 Renato César",
+        texto:"A liberação do técnico foi efetuada conforme autorização prévia do Srº Renato César."
+    },
+    {
+        titulo:"👤 Tarcísio Guerra",
+        texto:"A liberação do técnico foi realizada conforme autorização prévia do Srº Tarcísio Gil Guerra."
+    },
+    {
+        titulo:"🏢 Somos da Wesafer",
+        texto:"Somos da Wesafer, responsável pela liberação dos gabinetes MOURA"
+    },
+    {
+        titulo:"🚫 Sem autonomia",
+        texto:"Entendi. Infelizmente, não tenho autonomia para realizar a liberação, apenas técnicos da Moura possuem acesso."
+    },
+    {
+        titulo:"🚪 Segunda porta",
+        texto:"Não é necessário abrir a segunda porta, pois já existem eletrodutos de interligação destinados exclusivamente à passagem de todos os cabos da operadora."
+    },
+    {
+        titulo:"🔌 Eletrodutos",
+        texto:"Os eletrodutos destacados na foto apenas atravessam nossa área, conectando diretamente o ambiente do cliente ao rodapé do gabinete."
+    }
+]
+
+let anotacaoSelecionada = null
+
+function montarAnotacoes(){
+    const lista = document.getElementById("listaAnotacoes")
+
+    if(!lista){
+        return
+    }
+
+    lista.innerHTML = ""
+
+    anotacoesRapidas.forEach((item,index) => {
+        const botao = document.createElement("button")
+        botao.className = "item-anotacao"
+        botao.innerText = item.titulo
+        botao.onclick = () => selecionarAnotacao(index)
+        lista.appendChild(botao)
+    })
+}
+
+function selecionarAnotacao(index){
+    anotacaoSelecionada = anotacoesRapidas[index]
+
+    document.getElementById("tituloPreviewAnotacao").innerText = anotacaoSelecionada.titulo
+    document.getElementById("textoPreviewAnotacao").value = anotacaoSelecionada.texto
+
+    document.querySelectorAll(".item-anotacao").forEach((btn,i) => {
+        btn.classList.toggle("ativo", i === index)
+    })
+}
+
+function abrirAnotacoes(){
+    montarAnotacoes()
+
+    const painel = document.getElementById("painelAnotacoes")
+
+    if(painel){
+        painel.classList.add("aberto")
+    }
+
+    if(anotacaoSelecionada === null && anotacoesRapidas.length){
+        selecionarAnotacao(0)
+    }
+}
+
+function fecharAnotacoes(){
+    const painel = document.getElementById("painelAnotacoes")
+
+    if(painel){
+        painel.classList.remove("aberto")
+    }
+}
+
+function copiarAnotacaoSelecionada(){
+    if(!anotacaoSelecionada){
+        alert("Selecione uma anotação primeiro.")
+        return
+    }
+
+    navigator.clipboard.writeText(anotacaoSelecionada.texto)
+    mostrarToast("✅ Copiado")
+}
+
+
+function passaFiltro(acesso){
+    const busca = document.getElementById("busca").value.trim().toUpperCase()
+
+    if(!busca){
+        return true
+    }
+
+    return [
+        acesso.tecnico,
+        acesso.site,
+        acesso.ticket,
+        acesso.solicitante,
+        acesso.empresa,
+        acesso.periodo,
+        acesso.acao
+    ].join(" ").toUpperCase().includes(busca)
+}
+
+function renderizar(){
+    const listas = {
+        aguardando: document.getElementById("listaAguardando"),
+        liberado: document.getElementById("listaLiberado"),
+        entrada: document.getElementById("listaEntrada"),
+        saida: document.getElementById("listaSaida")
+    }
+
+    Object.values(listas).forEach(lista => lista.innerHTML = "")
+
+    const contadores = {
+        aguardando: 0,
+        liberado: 0,
+        entrada: 0,
+        saida: 0
+    }
+
+    acessos.forEach(acesso => {
+        contadores[acesso.status]++
+
+        if(!passaFiltro(acesso)){
+            return
+        }
+
+        const [classeEtiqueta, textoEtiqueta] = etiqueta(acesso.status)
+
+        const card = document.createElement("div")
+        card.className = "card-acesso"
+        card.draggable = true
+        card.dataset.id = acesso.id
+
+        card.innerHTML = `
+            <span class="etiqueta ${classeEtiqueta}">${textoEtiqueta}</span>
+
+            <h3>${acesso.tecnico}</h3>
+
+            <div class="card-meta">
+                <div><strong>${acesso.site}</strong> • ${acesso.ticket}</div>
+                ${modoCompacto ? "" : `
+                <div><strong>PERÍODO:</strong> ${acesso.periodo || "-"}</div>
+                <div><strong>SOLICITANTE:</strong> ${acesso.solicitante || "-"}</div>
+                <div><strong>EMPRESA:</strong> ${acesso.empresa || "-"}</div>
+                `}
+            </div>
+
+            <div class="card-botoes">
+                <button class="btn-amarelo" onclick="copiarTexto(${acesso.id}, 'liberacao')">LIB.</button>
+                <button onclick="executarAcaoCard(${acesso.id}, 'entrada', 'entrada')">ENTRADA</button>
+                <button onclick="executarAcaoCard(${acesso.id}, 'saida', 'saida')">SAÍDA</button>
+                <button class="btn-cinza" onclick="remover(${acesso.id})">REMOVER</button>
+            </div>
+        `
+
+        card.addEventListener("dragstart", evento => {
+            evento.dataTransfer.setData("text/plain", acesso.id)
+        })
+
+        listas[acesso.status].appendChild(card)
+    })
+
+    document.getElementById("qtdAguardando").innerText = contadores.aguardando
+    document.getElementById("qtdLiberado").innerText = contadores.liberado
+    document.getElementById("qtdEntrada").innerText = contadores.entrada
+    document.getElementById("qtdSaida").innerText = contadores.saida
+
+    document.getElementById("colAguardando").innerText = contadores.aguardando
+    document.getElementById("colLiberado").innerText = contadores.liberado
+    document.getElementById("colEntrada").innerText = contadores.entrada
+    document.getElementById("colSaida").innerText = contadores.saida
+}
+
+document.querySelectorAll(".kanban-coluna").forEach(coluna => {
+    coluna.addEventListener("dragover", evento => {
+        evento.preventDefault()
+        coluna.classList.add("drag-over")
+    })
+
+    coluna.addEventListener("dragleave", () => {
+        coluna.classList.remove("drag-over")
+    })
+
+    coluna.addEventListener("drop", evento => {
+        evento.preventDefault()
+        coluna.classList.remove("drag-over")
+
+        const id = Number(evento.dataTransfer.getData("text/plain"))
+        const status = coluna.dataset.status
+
+        alterarStatus(id,status)
+    })
+})
+
+window.addEventListener("DOMContentLoaded", carregar)
+</script>
+
+</body>
+</html>

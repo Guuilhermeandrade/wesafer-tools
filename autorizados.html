@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+<link rel="icon" type="image/png" href="assets/img/favicon.ico">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>BASE DE AUTORIZADOS</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+
+<style>
+.container{
+    max-width:1450px;
+}
+
+.area-autorizados{
+    display:grid;
+    grid-template-columns:420px 1fr;
+    gap:16px;
+}
+
+.painel-autorizados{
+    background:rgba(15,23,42,.46);
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:20px;
+    padding:18px;
+}
+
+.painel-autorizados h2{
+    color:#fff;
+    font-size:18px;
+    margin-bottom:12px;
+}
+
+.painel-autorizados p{
+    color:#94a3b8;
+    font-size:12px;
+    line-height:1.5;
+    margin-bottom:12px;
+}
+
+#listaBrutaAutorizados{
+    height:360px;
+    resize:vertical;
+    background:linear-gradient(180deg,#0f172a,#111827);
+    color:#e2e8f0;
+}
+
+.busca-autorizados{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:10px;
+    margin-bottom:14px;
+}
+
+.resultado-info{
+    color:#94a3b8;
+    font-size:12px;
+    font-weight:800;
+    margin-bottom:12px;
+}
+
+.lista-autorizados{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(270px,1fr));
+    gap:12px;
+}
+
+.card-autorizado{
+    background:#27272a;
+    color:#e5e7eb;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:14px;
+    padding:14px;
+    box-shadow:0 8px 16px rgba(0,0,0,.22);
+}
+
+.card-autorizado h3{
+    font-size:13px;
+    line-height:1.35;
+    margin-bottom:10px;
+    font-weight:900;
+}
+
+.card-autorizado .meta{
+    display:grid;
+    gap:5px;
+    color:#cbd5e1;
+    font-size:12px;
+    line-height:1.4;
+    margin-bottom:12px;
+}
+
+.card-botoes-autorizado{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+.card-botoes-autorizado button{
+    width:100%;
+    min-height:40px;
+    padding:10px 12px;
+    border-radius:12px;
+    font-size:12px;
+}
+
+.vazio{
+    min-height:280px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    color:#94a3b8;
+    background:rgba(15,23,42,.28);
+    border:1px dashed rgba(148,163,184,.22);
+    border-radius:18px;
+    padding:28px;
+}
+
+.resumo-base{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:14px;
+}
+
+.resumo-base .mini-card{
+    border:none;
+    border-radius:14px;
+    padding:12px;
+    color:white;
+    cursor:pointer;
+    text-align:left;
+    transition:.22s;
+    box-shadow:0 8px 18px rgba(0,0,0,.18);
+}
+
+.resumo-base .mini-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 14px 28px rgba(37,99,235,.24);
+}
+
+.resumo-base .mini-card{
+    min-height:76px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 22px;
+}
+
+.resumo-base .mini-card span{
+    display:block;
+    font-size:12px;
+    font-weight:900;
+    color:#dbeafe;
+    letter-spacing:.8px;
+    max-width:70%;
+}
+
+.resumo-base .mini-card strong{
+    font-size:28px;
+    font-weight:900;
+    line-height:1;
+    min-width:60px;
+    text-align:right;
+}
+
+.card-total-base{
+    background:linear-gradient(135deg,rgba(37,99,235,.88),rgba(14,165,233,.88));
+}
+
+.card-aguardando-base{
+    background:linear-gradient(135deg,rgba(202,138,4,.9),rgba(234,179,8,.9));
+}
+
+.card-expiram-hoje{
+    background:linear-gradient(135deg,rgba(220,38,38,.88),rgba(239,68,68,.88));
+}
+
+.btn-copiar-preview{
+    margin-bottom:14px;
+    background:linear-gradient(135deg,#16a34a,#22c55e)!important;
+}
+
+.preview-teams{
+    margin-top:0;
+    background:linear-gradient(180deg,#eff6ff,#dbeafe);
+    color:#0f172a;
+    border-radius:18px;
+    padding:18px;
+    overflow:auto;
+    display:none;
+}
+
+.preview-teams h2{
+    color:#0f172a;
+}
+
+.preview-teams table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+    border-radius:14px;
+    overflow:hidden;
+    font-size:12px;
+}
+
+.preview-teams thead{
+    background:#2563eb;
+    color:white;
+}
+
+.preview-teams th,
+.preview-teams td{
+    border:1px solid #dbeafe;
+    padding:10px;
+    text-align:left;
+}
+
+.preview-teams tbody tr:nth-child(even){
+    background:#f8fafc;
+}
+
+.selo-origem{
+    display:inline-flex;
+    width:max-content;
+    max-width:100%;
+    padding:4px 7px;
+    border-radius:6px;
+    font-size:10px;
+    font-weight:900;
+    color:#111827;
+    background:#22c55e;
+    margin-bottom:8px;
+}
+
+@media(max-width:1000px){
+    .area-autorizados{
+        grid-template-columns:1fr;
+    }
+
+    .resumo-base{
+        grid-template-columns:1fr;
+    }
+}
+
+/* ===== IMPORTAÇÃO DISCRETA - AUTORIZADOS ===== */
+.importador-discreto{
+    margin-bottom:14px;
+}
+
+.importador-discreto summary{
+    cursor:pointer;
+    color:#93c5fd;
+    font-weight:900;
+    font-size:13px;
+    padding:14px 16px;
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:16px;
+    background:rgba(15,23,42,.38);
+    list-style:none;
+}
+
+.importador-discreto summary::-webkit-details-marker{
+    display:none;
+}
+
+.importador-discreto[open] summary{
+    margin-bottom:12px;
+}
+
+.area-autorizados{
+    grid-template-columns:1fr!important;
+}
+
+.status-base{
+    display:inline-flex;
+    width:max-content;
+    padding:4px 8px;
+    border-radius:999px;
+    font-size:10px;
+    font-weight:900;
+    margin-bottom:8px;
+}
+
+.status-autorizado{
+    background:#22c55e;
+    color:#052e16;
+}
+
+.status-aguardando{
+    background:#eab308;
+    color:#422006;
+}
+
+.card-botoes-autorizado{
+    grid-template-columns:1fr 1fr 1fr!important;
+}
+
+.btn-status-base{
+    background:linear-gradient(135deg,#475569,#64748b)!important;
+    color:#ffffff!important;
+}
+
+
+/* ===== AJUSTE BOTÕES STATUS AUTORIZADOS ===== */
+.card-botoes-autorizado button{
+    font-size:11px!important;
+    padding:9px 8px!important;
+    white-space:normal;
+    line-height:1.15;
+}
+
+.btn-status-base{
+    font-size:10.5px!important;
+}
+
+
+/* ===== SEPARAÇÃO PESQUISA X TEAMS ===== */
+.bloco-pesquisa-resultados{
+    margin-top:10px;
+    padding:14px;
+    border:1px solid rgba(148,163,184,.16);
+    border-radius:18px;
+    background:rgba(15,23,42,.28);
+}
+
+.bloco-teams-gerado{
+    margin-top:18px;
+    padding:14px;
+    border:1px solid rgba(147,197,253,.20);
+    border-radius:18px;
+    background:rgba(15,23,42,.18);
+}
+
+.bloco-teams-gerado .titulo-bloco-teams{
+    color:#93c5fd;
+    font-size:13px;
+    font-weight:900;
+    margin-bottom:12px;
+    letter-spacing:.7px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="layout-sistema">
+
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <img src="assets/img/wesafer.png" alt="WE SAFER">
+    </div>
+
+<nav class="sidebar-menu">
+
+<a href="acessos.html">
+<span class="menu-icon">🚪</span><span class="menu-text">ACESSOS</span>
+</a>
+
+<a href="autorizados.html" class="ativo">
+<span class="menu-icon">👷</span><span class="menu-text">AUTORIZADOS</span>
+</a>
+
+</nav>
+</aside>
+
+<div class="conteudo-sistema">
+<div class="container">
+
+<header class="topo topo-sistema">
+    <div class="topo-info">
+        <div class="badge">👷 BASE OPERACIONAL DE AUTORIZADOS</div>
+        <h1>Autorizados</h1>
+        <p class="subtitulo">
+            Pesquise autorizados, gere acessos em LIBERADO e copie em um clique a lista dos acessos que expiram hoje.
+        </p>
+    </div>
+
+    <div class="topo-logo">
+        <img src="assets/img/wesafer.png" alt="WE SAFER">
+    </div>
+</header>
+
+<main class="area">
+
+<div class="area-autorizados">
+
+    <details class="importador-discreto"><summary>📥 IMPORTAR BASE</summary><section class="painel-autorizados">
+        <h2>📥 IMPORTAR BASE</h2>
+        <p>
+            Cole a lista no padrão:<br>
+            NOME DO TÉCNICO - SITE: TICKET DD/MM À DD/MM
+        </p>
+
+        <textarea id="listaBrutaAutorizados" placeholder="Exemplo:
+LEONARDO DINIZ - MGPGE: 14216 22/06 À 22/07
+CRISTIANO CALIXTO - SPEJM: 14219 23/06 À 30/06"></textarea>
+
+        <div class="botoes">
+            <button onclick="importarBase()">💾 SALVAR BASE</button>
+            <button class="btn-limpar" onclick="limparBase()">LIMPAR BASE</button>
+        </div>
+
+        <p class="mini-info">
+            A base fica salva no navegador. Registros vencidos antes de hoje são removidos automaticamente quando a tela abre.
+        </p>
+    </section></details>
+
+    <section class="painel-autorizados">
+        <h2>🔍 PESQUISAR AUTORIZADO</h2>
+
+        <div class="resumo-base">
+            <button class="mini-card card-total-base" onclick="toggleTabelaTeams('total')">
+                <span>TOTAL AUTORIZADOS</span>
+                <strong id="qtdBase">0</strong>
+            </button>
+
+            <button class="mini-card card-aguardando-base" onclick="toggleTabelaTeams('aguardando')">
+                <span>AGUARDANDO LIBERAÇÃO</span>
+                <strong id="qtdAguardandoBase">0</strong>
+            </button>
+
+            <button class="mini-card card-expiram-hoje" onclick="toggleTabelaTeams('expiram')">
+                <span>EXPIRAM HOJE</span>
+                <strong id="qtdExpiramHoje">0</strong>
+            </button>
+        </div>
+
+        <div class="busca-autorizados">
+            <input id="buscaAutorizado" placeholder="Pesquisar técnico, site ou ticket..." oninput="pesquisarAutorizados()">
+            <button onclick="pesquisarAutorizados()">BUSCAR</button>
+        </div>
+
+        <div class="bloco-pesquisa-resultados">
+            <div id="resultadoInfo" class="resultado-info">
+                Digite para pesquisar. Nenhum resultado é exibido antes da busca.
+            </div>
+
+            <div id="listaResultados" class="lista-autorizados"></div>
+        </div>
+
+        <div class="bloco-teams-gerado">
+            <div class="titulo-bloco-teams">📋 FORMULÁRIO GERADO PARA TEAMS</div>
+            <div id="previewTeams" class="preview-teams"></div>
+        </div>
+    </section>
+
+</div>
+
+</main>
+
+<footer class="footer">WeSafer Produtos Digitais Ltda.</footer>
+
+</div>
+</div>
+</div>
+
+<script>
+const STORAGE_BASE = "baseAutorizadosWesafer"
+const STORAGE_ACESSOS = "acessosWesaferKanban"
+
+let baseAutorizados = JSON.parse(localStorage.getItem(STORAGE_BASE) || "[]")
+
+function normalizar(texto){
+    return (texto || "")
+        .toString()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"")
+        .toUpperCase()
+}
+
+function hojeZerado(){
+    const hoje = new Date()
+    return new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate())
+}
+
+function dataFinalPeriodo(periodo){
+    if(!periodo) return null
+
+    const match = periodo.match(/(\d{2})\/(\d{2})\s*(?:À|A|a|á|Á)\s*(\d{2})\/(\d{2})/)
+    if(!match) return null
+
+    const hoje = new Date()
+    let ano = hoje.getFullYear()
+    const diaFim = Number(match[3])
+    const mesFim = Number(match[4]) - 1
+
+    return new Date(ano, mesFim, diaFim)
+}
+
+function estaExpiradoAntesDeHoje(item){
+    const fim = dataFinalPeriodo(item.periodo)
+    if(!fim) return false
+    return fim < hojeZerado()
+}
+
+function expiraHoje(item){
+    const fim = dataFinalPeriodo(item.periodo)
+    if(!fim) return false
+    return fim.getTime() === hojeZerado().getTime()
+}
+
+function limparExpiradosAutomaticamente(){
+    const antes = baseAutorizados.length
+    baseAutorizados = baseAutorizados.filter(item => !estaExpiradoAntesDeHoje(item))
+
+    if(baseAutorizados.length !== antes){
+        localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
+    }
+}
+
+function mostrarToast(mensagem){
+    const antigo = document.getElementById("toastCopiado")
+    if(antigo){ antigo.remove() }
+
+    const toast = document.createElement("div")
+    toast.id = "toastCopiado"
+    toast.innerHTML = mensagem
+    toast.style.position = "fixed"
+    toast.style.top = "20px"
+    toast.style.right = "20px"
+    toast.style.background = "#22c55e"
+    toast.style.color = "#fff"
+    toast.style.padding = "12px 18px"
+    toast.style.borderRadius = "10px"
+    toast.style.fontWeight = "800"
+    toast.style.zIndex = "99999"
+    toast.style.boxShadow = "0 12px 28px rgba(0,0,0,.28)"
+    document.body.appendChild(toast)
+
+    setTimeout(() => toast.remove(), 1500)
+}
+
+function extrairLinha(linha){
+    const texto = linha.trim()
+
+    const match = texto.match(/^(.*?)\s*-\s*([A-Z0-9]{4,6})\s*:\s*(\d+)\s+(\d{2}\/\d{2})\s*(?:À|A|a|á|Á)\s*(\d{2}\/\d{2})/i)
+
+    if(!match){
+        return null
+    }
+
+    let tecnicoOriginal = match[1].trim().toUpperCase()
+    let statusBase = "autorizado"
+
+    if(
+        tecnicoOriginal.includes("AGUARDANDO LIBERAÇÃO") ||
+        tecnicoOriginal.includes("AGUARDANDO LIBERACAO") ||
+        tecnicoOriginal.includes("AGUARDANDO AUTORIZAÇÃO") ||
+        tecnicoOriginal.includes("AGUARDANDO AUTORIZACAO")
+    ){
+        statusBase = "aguardando"
+        tecnicoOriginal = tecnicoOriginal
+            .replace(/\(?\s*AGUARDANDO LIBERAÇÃO\s*\)?/gi,"")
+            .replace(/\(?\s*AGUARDANDO LIBERACAO\s*\)?/gi,"")
+            .replace(/\(?\s*AGUARDANDO AUTORIZAÇÃO\s*\)?/gi,"")
+            .replace(/\(?\s*AGUARDANDO AUTORIZACAO\s*\)?/gi,"")
+            .replace(/\s+/g," ")
+            .trim()
+    }
+
+    return {
+        tecnico: tecnicoOriginal,
+        site: match[2].trim().toUpperCase(),
+        ticket: match[3].trim(),
+        periodo: `${match[4].trim()} À ${match[5].trim()}`,
+        solicitante: "",
+        empresa: "",
+        acao: "",
+        portaOperadora: true,
+        implantacao: true,
+        operacao: false,
+        origem: "importacao_manual",
+        statusBase,
+        linha: texto,
+        criadoEm: new Date().toLocaleString("pt-BR")
+    }
+}
+
+function chaveBase(item){
+    return `${normalizar(item.tecnico)}|${normalizar(item.site)}|${item.ticket}`
+}
+
+function importarBase(){
+    const texto = document.getElementById("listaBrutaAutorizados").value.trim()
+
+    if(!texto){
+        alert("Cole a lista antes de salvar.")
+        return
+    }
+
+    const linhas = texto.split("\n").filter(l => l.trim())
+    const extraidos = linhas.map(extrairLinha).filter(Boolean)
+
+    if(extraidos.length === 0){
+        alert("Nenhum registro válido encontrado. Confira o padrão da lista.")
+        return
+    }
+
+    const mapa = new Map()
+    ;[...baseAutorizados, ...extraidos].forEach(item => {
+        mapa.set(chaveBase(item), item)
+    })
+
+    baseAutorizados = Array.from(mapa.values())
+    limparExpiradosAutomaticamente()
+    localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
+
+    atualizarResumo()
+    document.getElementById("listaResultados").innerHTML = ""
+    document.getElementById("buscaAutorizado").value = ""
+    document.getElementById("resultadoInfo").innerText = `Base salva com ${baseAutorizados.length} registro(s). Digite para pesquisar.`
+    document.getElementById("previewTeams").style.display = "none"
+
+    mostrarToast("✅ Base salva")
+}
+
+function limparBase(){
+    if(!confirm("Deseja limpar toda a base de autorizados?")){
+        return
+    }
+
+    baseAutorizados = []
+    localStorage.removeItem(STORAGE_BASE)
+    document.getElementById("listaBrutaAutorizados").value = ""
+    document.getElementById("buscaAutorizado").value = ""
+    document.getElementById("listaResultados").innerHTML = ""
+    document.getElementById("resultadoInfo").innerText = "Base limpa. Cole uma nova lista para importar."
+    document.getElementById("previewTeams").style.display = "none"
+    atualizarResumo()
+}
+
+function pesquisarAutorizados(){
+    painelTeamsAberto = null
+    const termo = normalizar(document.getElementById("buscaAutorizado").value.trim())
+    const lista = document.getElementById("listaResultados")
+    const info = document.getElementById("resultadoInfo")
+
+    lista.innerHTML = ""
+    document.getElementById("previewTeams").style.display = "none"
+
+    if(!termo){
+        info.innerText = "Digite para pesquisar. Nenhum resultado é exibido antes da busca."
+        return
+    }
+
+    const encontrados = baseAutorizados.filter(item => {
+        return normalizar(item.tecnico).includes(termo) ||
+               normalizar(item.site).includes(termo) ||
+               normalizar(item.ticket).includes(termo) ||
+               normalizar(item.periodo).includes(termo)
+    })
+
+    info.innerText = encontrados.length
+        ? `${encontrados.length} resultado(s) encontrado(s).`
+        : "Nenhum autorizado encontrado para essa pesquisa."
+
+    encontrados.slice(0,80).forEach(item => {
+        const card = document.createElement("div")
+        card.className = "card-autorizado"
+
+        const statusBase = item.statusBase === "aguardando" ? "aguardando" : "autorizado"
+        const textoStatus = statusBase === "aguardando" ? "AGUARDANDO LIBERAÇÃO" : "AUTORIZADO"
+        const classeStatus = statusBase === "aguardando" ? "status-aguardando" : "status-autorizado"
+        const textoBotaoStatus = statusBase === "aguardando" ? "→ AUTORIZADO" : "→ AGUARDANDO"
+
+        card.innerHTML = `
+            <span class="status-base ${classeStatus}">${textoStatus}</span>
+            <h3>${item.tecnico}</h3>
+            <div class="meta">
+                <div><strong>SITE:</strong> ${item.site}</div>
+                <div><strong>TICKET:</strong> ${item.ticket}</div>
+                <div><strong>PERÍODO:</strong> ${item.periodo}</div>
+                ${item.acao ? `<div><strong>AÇÃO:</strong> ${item.acao}</div>` : ""}
+            </div>
+            <div class="card-botoes-autorizado">
+                <button onclick="gerarAcessoAutorizadoPelaChave('${chaveBase(item)}')">➕ GERAR</button>
+                <button class="btn-status-base" onclick="alternarStatusBase('${chaveBase(item)}')">${textoBotaoStatus}</button>
+                <button class="btn-limpar" onclick="removerAutorizado('${chaveBase(item)}')">REMOVER</button>
+            </div>
+        `
+
+        lista.appendChild(card)
+    })
+}
+
+function gerarAcessoAutorizadoPelaChave(chave){
+    const item = baseAutorizados.find(x => chaveBase(x) === chave)
+    if(item){
+        gerarAcessoAutorizado(item)
+    }
+}
+
+function gerarAcessoAutorizado(item){
+    let acessos = JSON.parse(localStorage.getItem(STORAGE_ACESSOS) || "[]")
+
+    const existe = acessos.some(acesso =>
+        acesso.tecnico === item.tecnico &&
+        acesso.site === item.site &&
+        acesso.ticket === item.ticket
+    )
+
+    if(existe && !confirm("Esse acesso já existe no Kanban. Deseja adicionar mesmo assim?")){
+        return
+    }
+
+    acessos.unshift({
+        id: Date.now(),
+        tecnico: item.tecnico,
+        site: item.site,
+        ticket: item.ticket,
+        solicitante: item.solicitante || "",
+        empresa: item.empresa || "",
+        periodo: item.periodo,
+        acao: item.acao || "",
+        portaOperadora: item.portaOperadora !== false,
+        implantacao: item.implantacao !== false,
+        operacao: item.operacao === true,
+        status: item.statusBase === "aguardando" ? "aguardando" : "liberado",
+        origem: "base_autorizados",
+        criadoEm: new Date().toLocaleString("pt-BR"),
+        atualizadoEm: new Date().toLocaleString("pt-BR")
+    })
+
+    localStorage.setItem(STORAGE_ACESSOS, JSON.stringify(acessos))
+    mostrarToast("✅ Acesso gerado em LIBERADO")
+}
+
+
+function alternarStatusBase(chave){
+    const item = baseAutorizados.find(x => chaveBase(x) === chave)
+    if(!item) return
+
+    item.statusBase = item.statusBase === "aguardando" ? "autorizado" : "aguardando"
+    item.atualizadoEm = new Date().toLocaleString("pt-BR")
+
+    let acessos = JSON.parse(localStorage.getItem(STORAGE_ACESSOS) || "[]")
+    acessos = acessos.map(acesso => {
+        if(
+            normalizar(acesso.tecnico) === normalizar(item.tecnico) &&
+            normalizar(acesso.site) === normalizar(item.site) &&
+            String(acesso.ticket) === String(item.ticket)
+        ){
+            acesso.status = item.statusBase === "aguardando" ? "aguardando" : "liberado"
+            acesso.atualizadoEm = new Date().toLocaleString("pt-BR")
+        }
+
+        return acesso
+    })
+
+    localStorage.setItem(STORAGE_ACESSOS, JSON.stringify(acessos))
+    localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
+
+    atualizarResumo()
+    pesquisarAutorizados()
+    mostrarToast("✅ Status atualizado")
+}
+
+function removerAutorizado(chave){
+    const item = baseAutorizados.find(x => chaveBase(x) === chave)
+    if(!item) return
+
+    if(!confirm(`Remover ${item.tecnico} - ${item.site} da base?`)){
+        return
+    }
+
+    baseAutorizados = baseAutorizados.filter(x => chaveBase(x) !== chave)
+    localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
+    atualizarResumo()
+    pesquisarAutorizados()
+    mostrarToast("✅ Removido da base")
+}
+
+
+function obterAguardandoLiberacao(){
+    return baseAutorizados.filter(item => item.statusBase === "aguardando")
+}
+
+function tituloListaTeams(tipo){
+    const hoje = new Date().toLocaleDateString("pt-BR")
+
+    if(tipo === "total"){
+        return `SEGUE A LISTA ATUALIZADA DE ACESSOS AUTORIZADOS - ${hoje}`
+    }
+
+    if(tipo === "aguardando"){
+        return `SEGUE A LISTA DE ACESSOS AGUARDANDO LIBERAÇÃO - ${hoje}`
+    }
+
+    return `SEGUE A LISTA DE ACESSOS QUE EXPIRAM HOJE - ${hoje}`
+}
+
+function obterListaPorTipo(tipo){
+    if(tipo === "total"){
+        return baseAutorizados.filter(item => item.statusBase !== "aguardando")
+    }
+
+    if(tipo === "aguardando"){
+        return obterAguardandoLiberacao()
+    }
+
+    return baseAutorizados.filter(item => item.statusBase !== "aguardando").filter(expiraHoje)
+}
+
+function nomeBlocoTeams(tipo){
+    if(tipo === "total") return "🟢 AUTORIZADOS"
+    if(tipo === "aguardando") return "🟡 AGUARDANDO LIBERAÇÃO"
+    return "🔴 EXPIRAM HOJE"
+}
+
+function montarTabelaTeams(tipo){
+    const lista = obterListaPorTipo(tipo)
+
+    if(lista.length === 0){
+        return {
+            lista,
+            html:`<div id="conteudoCopiavelTeams"><p>Nenhum registro encontrado.</p></div>`
+        }
+    }
+
+    const linhas = lista
+        .sort((a,b)=>Number(a.ticket)-Number(b.ticket))
+        .map(item => `
+            <tr>
+                <td>${item.tecnico || ""}</td>
+                <td>${item.ticket || ""}</td>
+                <td>${item.site || ""}</td>
+                <td>${item.periodo || ""}</td>
+            </tr>
+        `).join("")
+
+    const html = `
+    <div id="conteudoCopiavelTeams">
+        <div style="margin-bottom:25px;font-weight:700;font-size:15px;line-height:1.7;">
+            Boa noite,<br><br>
+            ${tituloListaTeams(tipo)}
+        </div>
+
+        <div class="bloco ativos">
+            <h2>${nomeBlocoTeams(tipo)}</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome do Técnico</th>
+                        <th>Nº do Chamado</th>
+                        <th>Site</th>
+                        <th>Período</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${linhas}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    `
+
+    return {lista, html}
+}
+
+
+let painelTeamsAberto = null
+
+function limparPainelTeams(){
+    painelTeamsAberto = null
+
+    const lista = document.getElementById("listaResultados")
+    const info = document.getElementById("resultadoInfo")
+    const preview = document.getElementById("previewTeams")
+
+    if(lista) lista.innerHTML = ""
+    if(preview){
+        preview.innerHTML = ""
+        preview.style.display = "none"
+    }
+    if(info) info.innerText = "Digite para pesquisar. Nenhum resultado é exibido antes da busca."
+}
+
+function toggleTabelaTeams(tipo){
+    if(painelTeamsAberto === tipo){
+        limparPainelTeams()
+        return
+    }
+
+    painelTeamsAberto = tipo
+    gerarTabelaTeams(tipo)
+}
+
+
+function gerarTabelaTeams(tipo){
+    const {lista, html} = montarTabelaTeams(tipo)
+    const preview = document.getElementById("previewTeams")
+
+    preview.innerHTML = `
+        <button class="btn-copiar-preview" onclick="copiarPreviewTeams()">📋 COPIAR PARA TEAMS</button>
+        ${html}
+    `
+    preview.style.display = "block"
+
+    if(lista.length === 0){
+        mostrarToast("✅ Nenhum registro encontrado")
+    }
+}
+
+function copiarPreviewTeams(){
+    const conteudo = document.getElementById("conteudoCopiavelTeams")
+
+    if(!conteudo){
+        alert("Gere uma lista primeiro.")
+        return
+    }
+
+    copiarElemento(conteudo)
+    mostrarToast("✅ Lista copiada para Teams")
+}
+
+function copiarExpiramHojeTeams(){
+    gerarTabelaTeams("expiram")
+    copiarPreviewTeams()
+}
+
+
+function tabelaExpiramHojeHTML(){
+    const lista = baseAutorizados.filter(expiraHoje)
+
+    const hoje = new Date()
+    const dataFormatada = hoje.toLocaleDateString("pt-BR")
+
+    if(lista.length === 0){
+        return {
+            lista,
+            html:`<div id="conteudoCopiavelExpiram"><p>Nenhum acesso expira hoje.</p></div>`
+        }
+    }
+
+    const linhas = lista
+        .sort((a,b)=>Number(a.ticket)-Number(b.ticket))
+        .map(item => `
+            <tr>
+                <td>${item.tecnico}</td>
+                <td>${item.ticket}</td>
+                <td>${item.site}</td>
+                <td>${item.periodo}</td>
+            </tr>
+        `).join("")
+
+    const html = `
+    <div id="conteudoCopiavelExpiram">
+        <div style="margin-bottom:25px;font-weight:700;font-size:15px;line-height:1.7;">
+            Boa noite,<br><br>
+            SEGUE A LISTA DE ACESSOS QUE EXPIRAM HOJE - ${dataFormatada}
+        </div>
+
+        <div class="bloco ativos">
+            <h2>🟡 EXPIRAM HOJE</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome do Técnico</th>
+                        <th>Nº do Chamado</th>
+                        <th>Site</th>
+                        <th>Período</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${linhas}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    `
+
+    return {lista, html}
+}
+
+function copiarExpiramHojeTeams(){
+    gerarTabelaTeams("expiram")
+    copiarPreviewTeams()
+}
+
+function copiarElemento(elemento){
+    const clone = elemento.cloneNode(true)
+
+    const areaTemporaria = document.createElement("div")
+    areaTemporaria.style.position = "fixed"
+    areaTemporaria.style.left = "-9999px"
+    areaTemporaria.appendChild(clone)
+
+    document.body.appendChild(areaTemporaria)
+
+    const range = document.createRange()
+    range.selectNode(clone)
+
+    const selection = window.getSelection()
+    selection.removeAllRanges()
+    selection.addRange(range)
+
+    document.execCommand("copy")
+
+    selection.removeAllRanges()
+    document.body.removeChild(areaTemporaria)
+}
+
+function atualizarResumo(){
+    const autorizados = baseAutorizados.filter(item => item.statusBase !== "aguardando")
+    const aguardando = obterAguardandoLiberacao()
+
+    document.getElementById("qtdBase").innerText = autorizados.length
+    document.getElementById("qtdExpiramHoje").innerText = autorizados.filter(expiraHoje).length
+
+    const campoAguardando = document.getElementById("qtdAguardandoBase")
+
+    if(campoAguardando){
+        campoAguardando.innerText = aguardando.length
+    }
+}
+
+function focarBusca(){
+    document.getElementById("buscaAutorizado").focus()
+}
+
+
+function sincronizarBaseComAcessos(){
+    const acessos = JSON.parse(localStorage.getItem(STORAGE_ACESSOS) || "[]")
+
+    acessos.forEach(acesso => {
+        if(!acesso || !acesso.tecnico || !acesso.site || !acesso.ticket || !acesso.periodo){
+            return
+        }
+
+        const statusBase = acesso.status === "aguardando" ? "aguardando" : acesso.status === "liberado" ? "autorizado" : null
+
+        if(!statusBase){
+            return
+        }
+
+        const itemBase = {
+            tecnico: acesso.tecnico,
+            site: acesso.site,
+            ticket: acesso.ticket,
+            solicitante: acesso.solicitante || "",
+            empresa: acesso.empresa || "",
+            periodo: acesso.periodo || "",
+            acao: acesso.acao || "",
+            portaOperadora: acesso.portaOperadora !== false,
+            implantacao: acesso.implantacao !== false,
+            operacao: acesso.operacao === true,
+            origem: "acessos",
+            statusBase,
+            atualizadoEm: new Date().toLocaleString("pt-BR")
+        }
+
+        const index = baseAutorizados.findIndex(item => chaveBase(item) === chaveBase(itemBase))
+
+        if(index >= 0){
+            baseAutorizados[index] = {...baseAutorizados[index], ...itemBase}
+        }else{
+            baseAutorizados.unshift(itemBase)
+        }
+    })
+
+    localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
+}
+
+function carregarTela(){
+    sincronizarBaseComAcessos()
+    limparExpiradosAutomaticamente()
+    atualizarResumo()
+}
+
+window.addEventListener("DOMContentLoaded", carregarTela)
+</script>
+
+</body>
+</html>
