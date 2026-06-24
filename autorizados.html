@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=9">
+<link rel="stylesheet" href="styles.css?v=11">
 
 <style>
 .container{
@@ -483,7 +483,7 @@ async function supabaseListarAutorizados(){
         site: item.site || "",
         ticket: item.ticket || "",
         periodo: item.periodo || "",
-        statusBase: item.status_base || "autorizado",
+        statusBase: (item.status_base || "autorizado").toString().trim().toLowerCase(),
         solicitante: item.solicitante || "",
         empresa: item.empresa || "",
         acao: item.acao || "",
@@ -950,7 +950,7 @@ async function removerAutorizado(chave){
 
 
 function obterAguardandoLiberacao(){
-    return baseAutorizados.filter(item => item.statusBase === "aguardando")
+    return baseAutorizados.filter(item => (item.statusBase || "").toString().trim().toLowerCase() === "aguardando")
 }
 
 function tituloListaTeams(tipo){
@@ -1179,14 +1179,13 @@ function copiarElemento(elemento){
 }
 
 function atualizarResumo(){
-    const autorizados = baseAutorizados.filter(item => item.statusBase !== "aguardando")
     const aguardando = obterAguardandoLiberacao()
+    const autorizados = baseAutorizados.filter(item => (item.statusBase || "").toString().trim().toLowerCase() !== "aguardando")
 
-    document.getElementById("qtdBase").innerText = autorizados.length
+    document.getElementById("qtdBase").innerText = baseAutorizados.length
     document.getElementById("qtdExpiramHoje").innerText = autorizados.filter(expiraHoje).length
 
     const campoAguardando = document.getElementById("qtdAguardandoBase")
-
     if(campoAguardando){
         campoAguardando.innerText = aguardando.length
     }

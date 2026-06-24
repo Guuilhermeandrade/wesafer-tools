@@ -13,7 +13,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=9">
+<link rel="stylesheet" href="styles.css?v=11">
 
 <style>
 /* ===== CONTROLE DE ACESSOS - KANBAN COM FORMATADOR EMBUTIDO ===== */
@@ -1027,7 +1027,7 @@ function salvarNaBaseAutorizados(acesso, statusBase = "autorizado"){
 }
 
 
-function adicionarCartao(){
+async function adicionarCartao(){
     const tecnico = document.getElementById("tecnico").value.trim().toUpperCase()
     const site = document.getElementById("site").value.trim().toUpperCase()
     const ticket = document.getElementById("ticket").value.trim()
@@ -1068,10 +1068,10 @@ function adicionarCartao(){
     acessos.unshift(novoAcesso)
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
-    supabaseSalvarAcessos()
-    supabaseSalvarAutorizado(novoAcesso, "aguardando")
+    await supabaseSalvarAcessos()
+    await supabaseSalvarAutorizado(novoAcesso, "aguardando")
 
-    renderizar()
+    await carregar()
     limparFormulario()
 
     fecharFormatador()
