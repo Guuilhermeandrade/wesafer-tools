@@ -1493,19 +1493,7 @@ window.addEventListener("DOMContentLoaded", carregar)
 
 async function atualizarAcessosAutomaticamente(){
     const box = document.getElementById("boxFormatador")
-    const busca = document.getElementById("busca")
-
-    if(box && box.open){
-        return
-    }
-
-    if(busca && busca.value.trim()){
-        const dadosSupabase = await supabaseListarAcessos()
-        acessos = dadosSupabase
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
-        renderizar()
-        return
-    }
+    if(box && box.open){ return }
 
     await carregar()
 }

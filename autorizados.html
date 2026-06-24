@@ -579,15 +579,35 @@ async function supabaseSalvarAcesso(acesso){
 }
 
 
-async function supabaseRemoverAutorizadoPorChave(chave){
-    const item = baseAutorizados.find(x => chaveBase(x) === chave)
-    if(!item) return
-    const url = `${SUPABASE_REST_URL}/autorizados?tecnico=eq.${encodeURIComponent(item.tecnico)}&site=eq.${encodeURIComponent(item.site)}&ticket=eq.${encodeURIComponent(item.ticket)}`
+async function supabaseRemoverAutorizadoItem(item){
+    if(!item){
+        return false
+    }
+
+    let url = ""
+
+    if(item.id){
+        url = `${SUPABASE_REST_URL}/autorizados?id=eq.${item.id}`
+    }else{
+        url = `${SUPABASE_REST_URL}/autorizados?tecnico=eq.${encodeURIComponent(item.tecnico)}&site=eq.${encodeURIComponent(item.site)}&ticket=eq.${encodeURIComponent(item.ticket)}`
+    }
+
     const resposta = await fetch(url, {
         method:"DELETE",
         headers:supabaseHeaders("return=minimal")
     })
-    if(!resposta.ok){ console.error("Erro ao remover autorizado:", await resposta.text()) }
+
+    if(!resposta.ok){
+        console.error("Erro ao remover autorizado:", await resposta.text())
+        return false
+    }
+
+    return true
+}
+
+async function supabaseRemoverAutorizadoPorChave(chave){
+    const item = baseAutorizados.find(x => chaveBase(x) === chave)
+    return await supabaseRemoverAutorizadoItem(item)
 }
 
 async function supabaseLimparAutorizados(){
@@ -913,7 +933,12 @@ async function removerAutorizado(chave){
         return
     }
 
-    await supabaseRemoverAutorizadoPorChave(chave)
+    const removido = await supabaseRemoverAutorizadoItem(item)
+
+    if(!removido){
+        alert("Não foi possível remover do Supabase. Abra o Console para ver o erro.")
+        return
+    }
 
     baseAutorizados = baseAutorizados.filter(x => chaveBase(x) !== chave)
     localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
@@ -1175,12 +1200,7 @@ function focarBusca(){
 async function carregarTela(){
     try{
         baseAutorizados = await supabaseListarAutorizados();
-        if(baseAutorizados.length){
-            localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados));
-        }else{
-            const backup = localStorage.getItem(STORAGE_BASE);
-            baseAutorizados = backup ? JSON.parse(backup) : [];
-        }
+        localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados));
     }catch(erro){
         console.warn("Carregando autorizados do backup local:", erro);
         const backup = localStorage.getItem(STORAGE_BASE);
@@ -1195,10 +1215,7 @@ window.addEventListener("DOMContentLoaded", carregarTela)
 
 async function atualizarAutorizadosAutomaticamente(){
     const importador = document.querySelector(".importador-discreto")
-
-    if(importador && importador.open){
-        return
-    }
+    if(importador && importador.open){ return }
 
     await carregarTela()
 }
