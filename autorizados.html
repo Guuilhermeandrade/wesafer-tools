@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20">
+<link rel="stylesheet" href="styles.css?v=21">
 
 <style>
 .container{
@@ -346,6 +346,12 @@
     font-weight:900;
     margin-bottom:12px;
     letter-spacing:.7px;
+}
+
+
+.status-expira-hoje{
+    background:#ef4444;
+    color:#fff;
 }
 
 </style>
@@ -871,9 +877,10 @@ function pesquisarAutorizados(){
         const card = document.createElement("div")
         card.className = "card-autorizado"
 
-        const statusBase = item.statusBase === "aguardando" ? "aguardando" : "autorizado"
-        const textoStatus = statusBase === "aguardando" ? "AGUARDANDO LIBERAÇÃO" : "AUTORIZADO"
-        const classeStatus = statusBase === "aguardando" ? "status-aguardando" : "status-autorizado"
+        const expiraNoDia = expiraHoje(item)
+        const statusBase = expiraNoDia ? "expira_hoje" : (item.statusBase === "aguardando" ? "aguardando" : "autorizado")
+        const textoStatus = expiraNoDia ? "EXPIRA HOJE" : (statusBase === "aguardando" ? "AGUARDANDO LIBERAÇÃO" : "AUTORIZADO")
+        const classeStatus = expiraNoDia ? "status-expira-hoje" : (statusBase === "aguardando" ? "status-aguardando" : "status-autorizado")
         const textoBotaoStatus = statusBase === "aguardando" ? "→ AUTORIZADO" : "→ AGUARDANDO"
 
         card.innerHTML = `
