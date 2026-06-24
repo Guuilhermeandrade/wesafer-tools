@@ -652,12 +652,8 @@ function expiraHoje(item){
 }
 
 function limparExpiradosAutomaticamente(){
-    const antes = baseAutorizados.length
     baseAutorizados = baseAutorizados.filter(item => !estaExpiradoAntesDeHoje(item))
-
-    if(baseAutorizados.length !== antes){
-        supabaseSalvarBaseAutorizados()
-    }
+    localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
 }
 
 function mostrarToast(mensagem){
@@ -1173,48 +1169,6 @@ function focarBusca(){
 }
 
 
-function sincronizarBaseComAcessos(){
-    const acessos = JSON.parse(localStorage.getItem(STORAGE_ACESSOS) || "[]")
-
-    acessos.forEach(acesso => {
-        if(!acesso || !acesso.tecnico || !acesso.site || !acesso.ticket || !acesso.periodo){
-            return
-        }
-
-        const statusBase = acesso.status === "aguardando" ? "aguardando" : acesso.status === "liberado" ? "autorizado" : null
-
-        if(!statusBase){
-            return
-        }
-
-        const itemBase = {
-            tecnico: acesso.tecnico,
-            site: acesso.site,
-            ticket: acesso.ticket,
-            solicitante: acesso.solicitante || "",
-            empresa: acesso.empresa || "",
-            periodo: acesso.periodo || "",
-            acao: acesso.acao || "",
-            portaOperadora: acesso.portaOperadora !== false,
-            implantacao: acesso.implantacao !== false,
-            operacao: acesso.operacao === true,
-            origem: "acessos",
-            statusBase,
-            atualizadoEm: new Date().toLocaleString("pt-BR")
-        }
-
-        const index = baseAutorizados.findIndex(item => chaveBase(item) === chaveBase(itemBase))
-
-        if(index >= 0){
-            baseAutorizados[index] = {...baseAutorizados[index], ...itemBase}
-        }else{
-            baseAutorizados.unshift(itemBase)
-        }
-    })
-
-    supabaseSalvarBaseAutorizados()
-}
-
 async function carregarTela(){
     try{
         baseAutorizados = await supabaseListarAutorizados();
@@ -1229,11 +1183,6 @@ async function carregarTela(){
         const backup = localStorage.getItem(STORAGE_BASE);
         baseAutorizados = backup ? JSON.parse(backup) : [];
     }
-
-    if(typeof sincronizarBaseComAcessos === "function"){
-        sincronizarBaseComAcessos();
-    }
-
     deduplicarBaseAutorizados();
     limparExpiradosAutomaticamente();
     atualizarResumo();
