@@ -13,7 +13,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=17">
+<link rel="stylesheet" href="styles.css?v=18">
 
 <style>
 /* ===== CONTROLE DE ACESSOS - KANBAN COM FORMATADOR EMBUTIDO ===== */
@@ -667,7 +667,7 @@
         <button onclick="extrairChamado()">EXTRAIR DADOS</button>
         <button class="btn-copiar" onclick="adicionarCartao()">ADICIONAR CARTÃO</button>
         <button class="btn-limpar" onclick="limparFormulario()">LIMPAR FORMULÁRIO</button>
-        <button class="btn-cinza" onclick="limparSaida()">LIMPAR COLUNA SAÍDA</button>
+        <button class="btn-cinza" onclick="limparPlantao()">LIMPAR PLANTÃO</button>
         <button class="btn-cinza" onclick="fecharFormatador()">✕ FECHAR</button>
     </div>
 
@@ -779,8 +779,8 @@ async function supabaseExcluirAcesso(id){
     if(!resposta.ok){ console.error("Erro ao excluir acesso no Supabase:", await resposta.text()); }
 }
 
-async function supabaseArquivarAcessosPorStatus(status){
-    const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?status=eq.${encodeURIComponent(status)}`, {
+async function supabaseArquivarTodosAcessos(){
+    const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?status=neq.arquivado`, {
         method:"PATCH",
         headers:supabaseHeaders("return=minimal"),
         body:JSON.stringify({
@@ -790,8 +790,11 @@ async function supabaseArquivarAcessosPorStatus(status){
     });
 
     if(!resposta.ok){
-        console.error("Erro ao arquivar coluna no Supabase:", await resposta.text());
+        console.error("Erro ao arquivar plantão no Supabase:", await resposta.text());
+        return false;
     }
+
+    return true;
 }
 
 async function supabaseSalvarAutorizado(acesso, statusBase = "autorizado"){
@@ -1122,21 +1125,22 @@ async function remover(id){
     renderizar();
 }
 
-
-async function limparSaida(){
-    if(!confirm("Deseja limpar a coluna SAÍDA da tela? Os registros continuarão salvos no Supabase como histórico.")){
+async function limparPlantao(){
+    if(!confirm("Deseja limpar a tela de Acessos para iniciar um novo plantão? Os registros continuarão salvos no Supabase como histórico.")){
         return;
     }
 
-    acessos = acessos.filter(item => item.status !== "saida");
+    const arquivado = await supabaseArquivarTodosAcessos();
 
+    if(!arquivado){
+        alert("Não consegui limpar o plantão. Verifique o Console.");
+        return;
+    }
+
+    acessos = [];
     localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos));
-
-    await supabaseArquivarAcessosPorStatus("saida");
-
     renderizar();
-
-    mostrarToast("✅ Coluna SAÍDA limpa");
+    mostrarToast("✅ Plantão limpo");
 }
 
 function alternarCompacto(){
