@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=11">
+<link rel="stylesheet" href="styles.css?v=15">
 
 <style>
 .container{
@@ -950,7 +950,10 @@ async function removerAutorizado(chave){
 
 
 function obterAguardandoLiberacao(){
-    return baseAutorizados.filter(item => (item.statusBase || "").toString().trim().toLowerCase() === "aguardando")
+    return baseAutorizados.filter(item => {
+        const status = String(item.statusBase || item.status_base || "").trim().toLowerCase()
+        return status === "aguardando"
+    })
 }
 
 function tituloListaTeams(tipo){
@@ -1179,16 +1182,23 @@ function copiarElemento(elemento){
 }
 
 function atualizarResumo(){
-    const aguardando = obterAguardandoLiberacao()
-    const autorizados = baseAutorizados.filter(item => (item.statusBase || "").toString().trim().toLowerCase() !== "aguardando")
+    const aguardando = baseAutorizados.filter(item => {
+        const status = String(item.statusBase || item.status_base || "").trim().toLowerCase()
+        return status === "aguardando"
+    })
 
-    document.getElementById("qtdBase").innerText = baseAutorizados.length
-    document.getElementById("qtdExpiramHoje").innerText = autorizados.filter(expiraHoje).length
+    const autorizados = baseAutorizados.filter(item => {
+        const status = String(item.statusBase || item.status_base || "").trim().toLowerCase()
+        return status !== "aguardando"
+    })
 
-    const campoAguardando = document.getElementById("qtdAguardandoBase")
-    if(campoAguardando){
-        campoAguardando.innerText = aguardando.length
-    }
+    const qtdBase = document.getElementById("qtdBase")
+    const qtdExpiramHoje = document.getElementById("qtdExpiramHoje")
+    const qtdAguardandoBase = document.getElementById("qtdAguardandoBase")
+
+    if(qtdBase) qtdBase.innerText = baseAutorizados.length
+    if(qtdExpiramHoje) qtdExpiramHoje.innerText = autorizados.filter(expiraHoje).length
+    if(qtdAguardandoBase) qtdAguardandoBase.innerText = aguardando.length
 }
 
 function focarBusca(){
@@ -1206,8 +1216,12 @@ async function carregarTela(){
         baseAutorizados = backup ? JSON.parse(backup) : [];
     }
     deduplicarBaseAutorizados();
-    limparExpiradosAutomaticamente();
     atualizarResumo();
+
+    const termo = document.getElementById("buscaAutorizado")?.value.trim()
+    if(termo){
+        pesquisarAutorizados()
+    }
 }
 
 window.addEventListener("DOMContentLoaded", carregarTela)
