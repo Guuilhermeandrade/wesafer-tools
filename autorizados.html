@@ -508,23 +508,49 @@ function autorizadoParaSupabase(item){
     };
 }
 
+function deduplicarBaseAutorizados(){
+    const mapa = new Map()
+    baseAutorizados.forEach(item => {
+        if(item && item.tecnico && item.site && item.ticket){
+            mapa.set(chaveBase(item), item)
+        }
+    })
+    baseAutorizados = Array.from(mapa.values())
+    localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
+}
+
+async function supabaseSalvarAutorizadoItem(item){
+    const registro = autorizadoParaSupabase(item)
+    const busca = `${SUPABASE_REST_URL}/autorizados?select=id&tecnico=eq.${encodeURIComponent(registro.tecnico)}&site=eq.${encodeURIComponent(registro.site)}&ticket=eq.${encodeURIComponent(registro.ticket)}`
+    const consulta = await fetch(busca, {headers:supabaseHeaders()})
+    if(!consulta.ok){
+        console.error("Erro ao consultar autorizado:", await consulta.text())
+        return
+    }
+    const encontrados = await consulta.json()
+
+    if(encontrados.length){
+        const resposta = await fetch(`${SUPABASE_REST_URL}/autorizados?id=eq.${encontrados[0].id}`, {
+            method:"PATCH",
+            headers:supabaseHeaders("return=minimal"),
+            body:JSON.stringify(registro)
+        })
+        if(!resposta.ok){ console.error("Erro ao atualizar autorizado:", await resposta.text()) }
+    }else{
+        const resposta = await fetch(`${SUPABASE_REST_URL}/autorizados`, {
+            method:"POST",
+            headers:supabaseHeaders("return=minimal"),
+            body:JSON.stringify(registro)
+        })
+        if(!resposta.ok){ console.error("Erro ao inserir autorizado:", await resposta.text()) }
+    }
+}
+
 async function supabaseSalvarBaseAutorizados(){
-    supabaseSalvarBaseAutorizados();
-
-    await fetch(`${SUPABASE_REST_URL}/autorizados?id=not.is.null`, {
-        method:"DELETE",
-        headers:supabaseHeaders("return=minimal")
-    });
-
-    if(!baseAutorizados.length){ return; }
-
-    const resposta = await fetch(`${SUPABASE_REST_URL}/autorizados`, {
-        method:"POST",
-        headers:supabaseHeaders("return=minimal"),
-        body:JSON.stringify(baseAutorizados.map(autorizadoParaSupabase))
-    });
-
-    if(!resposta.ok){ console.error("Erro ao salvar base de autorizados:", await resposta.text()); }
+    deduplicarBaseAutorizados()
+    for(const item of baseAutorizados){
+        await supabaseSalvarAutorizadoItem(item)
+    }
 }
 
 function acessoParaSupabase(acesso){
@@ -550,6 +576,26 @@ async function supabaseSalvarAcesso(acesso){
         body:JSON.stringify([acessoParaSupabase(acesso)])
     });
     if(!resposta.ok){ console.error("Erro ao salvar acesso:", await resposta.text()); }
+}
+
+
+async function supabaseRemoverAutorizadoPorChave(chave){
+    const item = baseAutorizados.find(x => chaveBase(x) === chave)
+    if(!item) return
+    const url = `${SUPABASE_REST_URL}/autorizados?tecnico=eq.${encodeURIComponent(item.tecnico)}&site=eq.${encodeURIComponent(item.site)}&ticket=eq.${encodeURIComponent(item.ticket)}`
+    const resposta = await fetch(url, {
+        method:"DELETE",
+        headers:supabaseHeaders("return=minimal")
+    })
+    if(!resposta.ok){ console.error("Erro ao remover autorizado:", await resposta.text()) }
+}
+
+async function supabaseLimparAutorizados(){
+    const resposta = await fetch(`${SUPABASE_REST_URL}/autorizados?id=not.is.null`, {
+        method:"DELETE",
+        headers:supabaseHeaders("return=minimal")
+    })
+    if(!resposta.ok){ console.error("Erro ao limpar autorizados:", await resposta.text()) }
 }
 
 async function supabaseAtualizarAcessoPorBase(item){
@@ -726,7 +772,7 @@ function limparBase(){
     }
 
     baseAutorizados = []
-    supabaseSalvarBaseAutorizados()
+    supabaseLimparAutorizados()
     document.getElementById("listaBrutaAutorizados").value = ""
     document.getElementById("buscaAutorizado").value = ""
     document.getElementById("listaResultados").innerHTML = ""
@@ -1188,6 +1234,7 @@ async function carregarTela(){
         sincronizarBaseComAcessos();
     }
 
+    deduplicarBaseAutorizados();
     limparExpiradosAutomaticamente();
     atualizarResumo();
 }
