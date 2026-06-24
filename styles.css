@@ -148,7 +148,7 @@ body::after{
 .container{
     position:relative;
     z-index:2;
-    max-width:1250px;
+    max-width:1500px;
     margin:auto;
     background:rgba(15,23,42,0.72);
     backdrop-filter:blur(30px);
@@ -895,4 +895,20 @@ button:active,
     .sidebar::after{
         opacity:1 !important;
     }
+}
+
+/* ===== CORREÇÃO FINAL LARGURA WESAFER V8 ===== */
+.conteudo-sistema{
+    margin-left:var(--sidebar-fechada) !important;
+    width:calc(100% - var(--sidebar-fechada)) !important;
+    padding:42px 24px !important;
+}
+
+.container{
+    max-width:1500px !important;
+    width:calc(100% - 40px) !important;
+}
+
+.kanban-board{
+    grid-template-columns:repeat(4,minmax(260px,1fr)) !important;
 }
