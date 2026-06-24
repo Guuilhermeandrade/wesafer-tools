@@ -905,7 +905,7 @@ function alternarStatusBase(chave){
     mostrarToast("✅ Status atualizado")
 }
 
-function removerAutorizado(chave){
+async function removerAutorizado(chave){
     const item = baseAutorizados.find(x => chaveBase(x) === chave)
     if(!item) return
 
@@ -914,7 +914,10 @@ function removerAutorizado(chave){
     }
 
     baseAutorizados = baseAutorizados.filter(x => chaveBase(x) !== chave)
-    supabaseSalvarBaseAutorizados()
+    localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
+
+    await supabaseRemoverAutorizadoPorChave(chave)
+
     atualizarResumo()
     pesquisarAutorizados()
     mostrarToast("✅ Removido da base")
