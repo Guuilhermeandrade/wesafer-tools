@@ -1069,6 +1069,7 @@ function adicionarCartao(){
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
     supabaseSalvarAcessos()
+    supabaseSalvarAutorizado(novoAcesso, "aguardando")
 
     renderizar()
     limparFormulario()
