@@ -13,7 +13,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=12">
+<link rel="stylesheet" href="styles.css?v=17">
 
 <style>
 /* ===== CONTROLE DE ACESSOS - KANBAN COM FORMATADOR EMBUTIDO ===== */
@@ -724,23 +724,25 @@ async function supabaseListarAcessos(){
     });
     if(!resposta.ok){ throw new Error("Não foi possível carregar acessos do Supabase"); }
     const dados = await resposta.json();
-    return dados.map(item => ({
-        id: Number(item.id),
-        tecnico: item.tecnico || "",
-        site: item.site || "",
-        ticket: item.ticket || "",
-        solicitante: item.solicitante || "",
-        empresa: item.empresa || "",
-        periodo: item.periodo || "",
-        acao: item.acao || "",
-        portaOperadora: true,
-        implantacao: true,
-        operacao: false,
-        status: item.status || "aguardando",
-        origem: item.origem || "",
-        criadoEm: item.created_at || "",
-        atualizadoEm: item.atualizado_em || ""
-    }));
+    return dados
+        .filter(item => item.status !== "arquivado")
+        .map(item => ({
+            id: Number(item.id),
+            tecnico: item.tecnico || "",
+            site: item.site || "",
+            ticket: item.ticket || "",
+            solicitante: item.solicitante || "",
+            empresa: item.empresa || "",
+            periodo: item.periodo || "",
+            acao: item.acao || "",
+            portaOperadora: true,
+            implantacao: true,
+            operacao: false,
+            status: item.status || "aguardando",
+            origem: item.origem || "",
+            criadoEm: item.created_at || "",
+            atualizadoEm: item.atualizado_em || ""
+        }));
 }
 
 function acessoParaSupabase(acesso){
@@ -777,12 +779,19 @@ async function supabaseExcluirAcesso(id){
     if(!resposta.ok){ console.error("Erro ao excluir acesso no Supabase:", await resposta.text()); }
 }
 
-async function supabaseExcluirAcessosPorStatus(status){
+async function supabaseArquivarAcessosPorStatus(status){
     const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?status=eq.${encodeURIComponent(status)}`, {
-        method:"DELETE",
-        headers:supabaseHeaders("return=minimal")
+        method:"PATCH",
+        headers:supabaseHeaders("return=minimal"),
+        body:JSON.stringify({
+            status:"arquivado",
+            atualizado_em:dataISOAgora()
+        })
     });
-    if(!resposta.ok){ console.error("Erro ao limpar coluna no Supabase:", await resposta.text()); }
+
+    if(!resposta.ok){
+        console.error("Erro ao arquivar coluna no Supabase:", await resposta.text());
+    }
 }
 
 async function supabaseSalvarAutorizado(acesso, statusBase = "autorizado"){
@@ -1113,6 +1122,23 @@ async function remover(id){
     renderizar();
 }
 
+
+async function limparSaida(){
+    if(!confirm("Deseja limpar a coluna SAÍDA da tela? Os registros continuarão salvos no Supabase como histórico.")){
+        return;
+    }
+
+    acessos = acessos.filter(item => item.status !== "saida");
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos));
+
+    await supabaseArquivarAcessosPorStatus("saida");
+
+    renderizar();
+
+    mostrarToast("✅ Coluna SAÍDA limpa");
+}
+
 function alternarCompacto(){
     modoCompacto = !modoCompacto
     renderizar()
@@ -1416,7 +1442,7 @@ function renderizar(){
         saida: 0
     }
 
-    acessos.forEach(acesso => {
+    acessos.filter(acesso => acesso.status !== "arquivado").forEach(acesso => {
         contadores[acesso.status]++
 
         if(!passaFiltro(acesso)){
