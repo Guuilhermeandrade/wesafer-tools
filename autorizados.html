@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=11">
+<link rel="stylesheet" href="styles.css?v=12">
 
 <style>
 .container{
@@ -491,6 +491,54 @@ async function supabaseListarAutorizados(){
         atualizadoEm: item.atualizado_em || "",
         criadoEm: item.created_at || ""
     }));
+}
+
+async function supabaseListarAcessosAguardando(){
+    const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?select=*&status=eq.aguardando&order=created_at.desc`, {
+        headers:supabaseHeaders()
+    });
+
+    if(!resposta.ok){
+        console.error("Não foi possível carregar acessos aguardando:", await resposta.text());
+        return [];
+    }
+
+    const dados = await resposta.json();
+
+    return dados.map(item => ({
+        idAcesso: item.id,
+        tecnico: item.tecnico || "",
+        site: item.site || "",
+        ticket: item.ticket || "",
+        periodo: item.periodo || "",
+        statusBase: "aguardando",
+        solicitante: item.solicitante || "",
+        empresa: item.empresa || "",
+        acao: item.acao || "",
+        origem: item.origem || "acessos",
+        atualizadoEm: item.atualizado_em || "",
+        criadoEm: item.created_at || ""
+    }));
+}
+
+function mesclarAutorizadosComAguardando(base, aguardando){
+    const mapa = new Map();
+
+    base.forEach(item => {
+        if(item && item.tecnico && item.site && item.ticket){
+            mapa.set(chaveBase(item), item);
+        }
+    });
+
+    aguardando.forEach(item => {
+        if(item && item.tecnico && item.site && item.ticket){
+            const chave = chaveBase(item);
+            const existente = mapa.get(chave) || {};
+            mapa.set(chave, {...existente, ...item, statusBase:"aguardando"});
+        }
+    });
+
+    return Array.from(mapa.values());
 }
 
 function autorizadoParaSupabase(item){
@@ -1198,16 +1246,25 @@ function focarBusca(){
 
 async function carregarTela(){
     try{
-        baseAutorizados = await supabaseListarAutorizados();
+        const autorizadosSupabase = await supabaseListarAutorizados();
+        const acessosAguardando = await supabaseListarAcessosAguardando();
+
+        baseAutorizados = mesclarAutorizadosComAguardando(autorizadosSupabase, acessosAguardando);
         localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados));
     }catch(erro){
         console.warn("Carregando autorizados do backup local:", erro);
         const backup = localStorage.getItem(STORAGE_BASE);
         baseAutorizados = backup ? JSON.parse(backup) : [];
     }
+
     deduplicarBaseAutorizados();
     limparExpiradosAutomaticamente();
     atualizarResumo();
+
+    const termo = document.getElementById("buscaAutorizado")?.value.trim();
+    if(termo){
+        pesquisarAutorizados();
+    }
 }
 
 window.addEventListener("DOMContentLoaded", carregarTela)
