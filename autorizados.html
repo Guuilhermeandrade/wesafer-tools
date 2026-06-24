@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=16">
+<link rel="stylesheet" href="styles.css?v=20">
 
 <style>
 .container{
@@ -470,6 +470,7 @@ const STORAGE_BASE = "baseAutorizadosWesafer"
 const STORAGE_ACESSOS = "acessosWesaferKanban"
 
 let baseAutorizados = []
+let acessosExpiramHoje = []
 
 async function supabaseListarAutorizados(){
     const resposta = await fetch(`${SUPABASE_REST_URL}/autorizados?select=*&order=created_at.desc`, {
@@ -491,6 +492,46 @@ async function supabaseListarAutorizados(){
         atualizadoEm: item.atualizado_em || "",
         criadoEm: item.created_at || ""
     }));
+}
+
+async function supabaseListarAcessosExpiramHoje(){
+    const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?select=*&status=neq.arquivado&order=created_at.desc`, {
+        headers:supabaseHeaders()
+    });
+
+    if(!resposta.ok){
+        console.error("Erro ao carregar acessos para expiram hoje:", await resposta.text())
+        return []
+    }
+
+    const dados = await resposta.json()
+
+    return dados.map(item => ({
+        idAcesso: item.id,
+        tecnico: item.tecnico || "",
+        site: item.site || "",
+        ticket: item.ticket || "",
+        periodo: item.periodo || "",
+        statusBase: "expira_hoje",
+        solicitante: item.solicitante || "",
+        empresa: item.empresa || "",
+        acao: item.acao || "",
+        origem: "acessos",
+        atualizadoEm: item.atualizado_em || "",
+        criadoEm: item.created_at || ""
+    })).filter(expiraHoje)
+}
+
+function listaUnicaPorChave(lista){
+    const mapa = new Map()
+
+    lista.forEach(item => {
+        if(item && item.tecnico && item.site && item.ticket){
+            mapa.set(chaveBase(item), item)
+        }
+    })
+
+    return Array.from(mapa.values())
 }
 
 function autorizadoParaSupabase(item){
@@ -812,6 +853,10 @@ function pesquisarAutorizados(){
     }
 
     const encontrados = baseAutorizados.filter(item => {
+        if(estaExpiradoAntesDeHoje(item)){
+            return false
+        }
+
         return normalizar(item.tecnico).includes(termo) ||
                normalizar(item.site).includes(termo) ||
                normalizar(item.ticket).includes(termo) ||
@@ -952,7 +997,7 @@ async function removerAutorizado(chave){
 function obterAguardandoLiberacao(){
     return baseAutorizados.filter(item => {
         const status = String(item.statusBase || item.status_base || "").trim().toLowerCase()
-        return status === "aguardando"
+        return status === "aguardando" && !expiraHoje(item) && !estaExpiradoAntesDeHoje(item)
     })
 }
 
@@ -974,7 +1019,7 @@ function obterListaPorTipo(tipo){
     if(tipo === "total"){
         return baseAutorizados.filter(item => {
             const status = String(item.statusBase || item.status_base || "").trim().toLowerCase()
-            return status !== "aguardando"
+            return status !== "aguardando" && !expiraHoje(item) && !estaExpiradoAntesDeHoje(item)
         })
     }
 
@@ -982,10 +1027,8 @@ function obterListaPorTipo(tipo){
         return obterAguardandoLiberacao()
     }
 
-    return baseAutorizados.filter(item => {
-        const status = String(item.statusBase || item.status_base || "").trim().toLowerCase()
-        return status !== "aguardando"
-    }).filter(expiraHoje)
+    const expiramBase = baseAutorizados.filter(item => expiraHoje(item))
+    return listaUnicaPorChave([...expiramBase, ...acessosExpiramHoje])
 }
 
 function nomeBlocoTeams(tipo){
@@ -1188,18 +1231,18 @@ function copiarElemento(elemento){
 }
 
 function atualizarResumo(){
-    const aguardando = baseAutorizados.filter(item => {
-        const status = String(item.statusBase || item.status_base || "").trim().toLowerCase()
-        return status === "aguardando"
-    })
+    const aguardando = obterAguardandoLiberacao()
 
     const autorizados = baseAutorizados.filter(item => {
         const status = String(item.statusBase || item.status_base || "").trim().toLowerCase()
-        return status !== "aguardando"
+        return status !== "aguardando" && !expiraHoje(item) && !estaExpiradoAntesDeHoje(item)
     })
 
+    const expiramBase = baseAutorizados.filter(item => expiraHoje(item))
+    const expiramHoje = listaUnicaPorChave([...expiramBase, ...acessosExpiramHoje])
+
     document.getElementById("qtdBase").innerText = autorizados.length
-    document.getElementById("qtdExpiramHoje").innerText = autorizados.filter(expiraHoje).length
+    document.getElementById("qtdExpiramHoje").innerText = expiramHoje.length
 
     const campoAguardando = document.getElementById("qtdAguardandoBase")
     if(campoAguardando){
@@ -1215,15 +1258,22 @@ function focarBusca(){
 async function carregarTela(){
     try{
         baseAutorizados = await supabaseListarAutorizados();
+        acessosExpiramHoje = await supabaseListarAcessosExpiramHoje();
         localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados));
     }catch(erro){
         console.warn("Carregando autorizados do backup local:", erro);
         const backup = localStorage.getItem(STORAGE_BASE);
         baseAutorizados = backup ? JSON.parse(backup) : [];
+        acessosExpiramHoje = [];
     }
+
     deduplicarBaseAutorizados();
-    limparExpiradosAutomaticamente();
     atualizarResumo();
+
+    const termo = document.getElementById("buscaAutorizado")?.value.trim()
+    if(termo){
+        pesquisarAutorizados()
+    }
 }
 
 window.addEventListener("DOMContentLoaded", carregarTela)
