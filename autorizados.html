@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=14">
+<link rel="stylesheet" href="styles.css?v=11">
 
 <style>
 .container{
@@ -493,7 +493,6 @@ async function supabaseListarAutorizados(){
     }));
 }
 
-
 function autorizadoParaSupabase(item){
     return {
         tecnico: item.tecnico || "",
@@ -585,37 +584,25 @@ async function supabaseRemoverAutorizadoItem(item){
         return false
     }
 
-    const headers = supabaseHeaders("return=minimal")
-    let removeu = false
+    let url = ""
 
     if(item.id){
-        const porId = await fetch(`${SUPABASE_REST_URL}/autorizados?id=eq.${item.id}`, {
-            method:"DELETE",
-            headers
-        })
-
-        if(!porId.ok){
-            console.error("Erro ao remover autorizado por ID:", await porId.text())
-        }else{
-            removeu = true
-        }
-    }
-
-    const porChave = await fetch(
-        `${SUPABASE_REST_URL}/autorizados?tecnico=eq.${encodeURIComponent(item.tecnico)}&site=eq.${encodeURIComponent(item.site)}&ticket=eq.${encodeURIComponent(item.ticket)}`,
-        {
-            method:"DELETE",
-            headers
-        }
-    )
-
-    if(!porChave.ok){
-        console.error("Erro ao remover autorizado por chave:", await porChave.text())
+        url = `${SUPABASE_REST_URL}/autorizados?id=eq.${item.id}`
     }else{
-        removeu = true
+        url = `${SUPABASE_REST_URL}/autorizados?tecnico=eq.${encodeURIComponent(item.tecnico)}&site=eq.${encodeURIComponent(item.site)}&ticket=eq.${encodeURIComponent(item.ticket)}`
     }
 
-    return removeu
+    const resposta = await fetch(url, {
+        method:"DELETE",
+        headers:supabaseHeaders("return=minimal")
+    })
+
+    if(!resposta.ok){
+        console.error("Erro ao remover autorizado:", await resposta.text())
+        return false
+    }
+
+    return true
 }
 
 async function supabaseRemoverAutorizadoPorChave(chave){
@@ -949,7 +936,7 @@ async function removerAutorizado(chave){
     const removido = await supabaseRemoverAutorizadoItem(item)
 
     if(!removido){
-        alert("Não consegui remover no Supabase. Provavelmente falta permissão DELETE na tabela autorizados.")
+        alert("Não foi possível remover do Supabase. Abra o Console para ver o erro.")
         return
     }
 
@@ -963,10 +950,7 @@ async function removerAutorizado(chave){
 
 
 function obterAguardandoLiberacao(){
-    return baseAutorizados.filter(item => {
-        const status = (item.statusBase || item.status_base || "").toString().trim().toLowerCase()
-        return status === "aguardando"
-    })
+    return baseAutorizados.filter(item => (item.statusBase || "").toString().trim().toLowerCase() === "aguardando")
 }
 
 function tituloListaTeams(tipo){
@@ -1196,18 +1180,15 @@ function copiarElemento(elemento){
 
 function atualizarResumo(){
     const aguardando = obterAguardandoLiberacao()
-    const autorizados = baseAutorizados.filter(item => {
-        const status = (item.statusBase || item.status_base || "").toString().trim().toLowerCase()
-        return status !== "aguardando"
-    })
+    const autorizados = baseAutorizados.filter(item => (item.statusBase || "").toString().trim().toLowerCase() !== "aguardando")
 
-    const qtdBase = document.getElementById("qtdBase")
-    const qtdExpiramHoje = document.getElementById("qtdExpiramHoje")
-    const qtdAguardandoBase = document.getElementById("qtdAguardandoBase")
+    document.getElementById("qtdBase").innerText = baseAutorizados.length
+    document.getElementById("qtdExpiramHoje").innerText = autorizados.filter(expiraHoje).length
 
-    if(qtdBase) qtdBase.innerText = baseAutorizados.length
-    if(qtdExpiramHoje) qtdExpiramHoje.innerText = autorizados.filter(expiraHoje).length
-    if(qtdAguardandoBase) qtdAguardandoBase.innerText = aguardando.length
+    const campoAguardando = document.getElementById("qtdAguardandoBase")
+    if(campoAguardando){
+        campoAguardando.innerText = aguardando.length
+    }
 }
 
 function focarBusca(){
@@ -1217,22 +1198,16 @@ function focarBusca(){
 
 async function carregarTela(){
     try{
-        baseAutorizados = await supabaseListarAutorizados()
-        localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
+        baseAutorizados = await supabaseListarAutorizados();
+        localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados));
     }catch(erro){
-        console.warn("Carregando autorizados do backup local:", erro)
-        const backup = localStorage.getItem(STORAGE_BASE)
-        baseAutorizados = backup ? JSON.parse(backup) : []
+        console.warn("Carregando autorizados do backup local:", erro);
+        const backup = localStorage.getItem(STORAGE_BASE);
+        baseAutorizados = backup ? JSON.parse(backup) : [];
     }
-
-    deduplicarBaseAutorizados()
-    limparExpiradosAutomaticamente()
-    atualizarResumo()
-
-    const termo = document.getElementById("buscaAutorizado")?.value.trim()
-    if(termo){
-        pesquisarAutorizados()
-    }
+    deduplicarBaseAutorizados();
+    limparExpiradosAutomaticamente();
+    atualizarResumo();
 }
 
 window.addEventListener("DOMContentLoaded", carregarTela)
