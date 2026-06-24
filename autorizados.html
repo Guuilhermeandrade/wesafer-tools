@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=15">
+<link rel="stylesheet" href="styles.css?v=16">
 
 <style>
 .container{
@@ -972,14 +972,20 @@ function tituloListaTeams(tipo){
 
 function obterListaPorTipo(tipo){
     if(tipo === "total"){
-        return baseAutorizados
+        return baseAutorizados.filter(item => {
+            const status = String(item.statusBase || item.status_base || "").trim().toLowerCase()
+            return status !== "aguardando"
+        })
     }
 
     if(tipo === "aguardando"){
         return obterAguardandoLiberacao()
     }
 
-    return baseAutorizados.filter(item => item.statusBase !== "aguardando").filter(expiraHoje)
+    return baseAutorizados.filter(item => {
+        const status = String(item.statusBase || item.status_base || "").trim().toLowerCase()
+        return status !== "aguardando"
+    }).filter(expiraHoje)
 }
 
 function nomeBlocoTeams(tipo){
@@ -1192,13 +1198,13 @@ function atualizarResumo(){
         return status !== "aguardando"
     })
 
-    const qtdBase = document.getElementById("qtdBase")
-    const qtdExpiramHoje = document.getElementById("qtdExpiramHoje")
-    const qtdAguardandoBase = document.getElementById("qtdAguardandoBase")
+    document.getElementById("qtdBase").innerText = autorizados.length
+    document.getElementById("qtdExpiramHoje").innerText = autorizados.filter(expiraHoje).length
 
-    if(qtdBase) qtdBase.innerText = baseAutorizados.length
-    if(qtdExpiramHoje) qtdExpiramHoje.innerText = autorizados.filter(expiraHoje).length
-    if(qtdAguardandoBase) qtdAguardandoBase.innerText = aguardando.length
+    const campoAguardando = document.getElementById("qtdAguardandoBase")
+    if(campoAguardando){
+        campoAguardando.innerText = aguardando.length
+    }
 }
 
 function focarBusca(){
@@ -1216,12 +1222,8 @@ async function carregarTela(){
         baseAutorizados = backup ? JSON.parse(backup) : [];
     }
     deduplicarBaseAutorizados();
+    limparExpiradosAutomaticamente();
     atualizarResumo();
-
-    const termo = document.getElementById("buscaAutorizado")?.value.trim()
-    if(termo){
-        pesquisarAutorizados()
-    }
 }
 
 window.addEventListener("DOMContentLoaded", carregarTela)
