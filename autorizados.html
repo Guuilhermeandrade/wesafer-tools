@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=13">
+<link rel="stylesheet" href="styles.css?v=14">
 
 <style>
 .container{
@@ -585,25 +585,37 @@ async function supabaseRemoverAutorizadoItem(item){
         return false
     }
 
-    let url = ""
+    const headers = supabaseHeaders("return=minimal")
+    let removeu = false
 
     if(item.id){
-        url = `${SUPABASE_REST_URL}/autorizados?id=eq.${item.id}`
+        const porId = await fetch(`${SUPABASE_REST_URL}/autorizados?id=eq.${item.id}`, {
+            method:"DELETE",
+            headers
+        })
+
+        if(!porId.ok){
+            console.error("Erro ao remover autorizado por ID:", await porId.text())
+        }else{
+            removeu = true
+        }
+    }
+
+    const porChave = await fetch(
+        `${SUPABASE_REST_URL}/autorizados?tecnico=eq.${encodeURIComponent(item.tecnico)}&site=eq.${encodeURIComponent(item.site)}&ticket=eq.${encodeURIComponent(item.ticket)}`,
+        {
+            method:"DELETE",
+            headers
+        }
+    )
+
+    if(!porChave.ok){
+        console.error("Erro ao remover autorizado por chave:", await porChave.text())
     }else{
-        url = `${SUPABASE_REST_URL}/autorizados?tecnico=eq.${encodeURIComponent(item.tecnico)}&site=eq.${encodeURIComponent(item.site)}&ticket=eq.${encodeURIComponent(item.ticket)}`
+        removeu = true
     }
 
-    const resposta = await fetch(url, {
-        method:"DELETE",
-        headers:supabaseHeaders("return=minimal")
-    })
-
-    if(!resposta.ok){
-        console.error("Erro ao remover autorizado:", await resposta.text())
-        return false
-    }
-
-    return true
+    return removeu
 }
 
 async function supabaseRemoverAutorizadoPorChave(chave){
@@ -937,7 +949,7 @@ async function removerAutorizado(chave){
     const removido = await supabaseRemoverAutorizadoItem(item)
 
     if(!removido){
-        alert("Não foi possível remover do Supabase. Abra o Console para ver o erro.")
+        alert("Não consegui remover no Supabase. Provavelmente falta permissão DELETE na tabela autorizados.")
         return
     }
 
@@ -1189,13 +1201,13 @@ function atualizarResumo(){
         return status !== "aguardando"
     })
 
-    document.getElementById("qtdBase").innerText = baseAutorizados.length
-    document.getElementById("qtdExpiramHoje").innerText = autorizados.filter(expiraHoje).length
+    const qtdBase = document.getElementById("qtdBase")
+    const qtdExpiramHoje = document.getElementById("qtdExpiramHoje")
+    const qtdAguardandoBase = document.getElementById("qtdAguardandoBase")
 
-    const campoAguardando = document.getElementById("qtdAguardandoBase")
-    if(campoAguardando){
-        campoAguardando.innerText = aguardando.length
-    }
+    if(qtdBase) qtdBase.innerText = baseAutorizados.length
+    if(qtdExpiramHoje) qtdExpiramHoje.innerText = autorizados.filter(expiraHoje).length
+    if(qtdAguardandoBase) qtdAguardandoBase.innerText = aguardando.length
 }
 
 function focarBusca(){
@@ -1205,21 +1217,21 @@ function focarBusca(){
 
 async function carregarTela(){
     try{
-        baseAutorizados = await supabaseListarAutorizados();
-        localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados));
+        baseAutorizados = await supabaseListarAutorizados()
+        localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
     }catch(erro){
-        console.warn("Carregando autorizados do backup local:", erro);
-        const backup = localStorage.getItem(STORAGE_BASE);
-        baseAutorizados = backup ? JSON.parse(backup) : [];
+        console.warn("Carregando autorizados do backup local:", erro)
+        const backup = localStorage.getItem(STORAGE_BASE)
+        baseAutorizados = backup ? JSON.parse(backup) : []
     }
 
-    deduplicarBaseAutorizados();
-    limparExpiradosAutomaticamente();
-    atualizarResumo();
+    deduplicarBaseAutorizados()
+    limparExpiradosAutomaticamente()
+    atualizarResumo()
 
-    const termo = document.getElementById("buscaAutorizado")?.value.trim();
+    const termo = document.getElementById("buscaAutorizado")?.value.trim()
     if(termo){
-        pesquisarAutorizados();
+        pesquisarAutorizados()
     }
 }
 
