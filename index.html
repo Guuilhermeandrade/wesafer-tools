@@ -859,13 +859,8 @@ function salvar(){
 async function carregar(){
     try{
         const dadosSupabase = await supabaseListarAcessos();
-        if(dadosSupabase.length){
-            acessos = dadosSupabase;
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos));
-        }else{
-            const salvo = localStorage.getItem(STORAGE_KEY);
-            acessos = salvo ? JSON.parse(salvo) : [];
-        }
+        acessos = dadosSupabase;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos));
     }catch(erro){
         console.warn("Carregando acessos do backup local:", erro);
         const salvo = localStorage.getItem(STORAGE_KEY);
@@ -1099,12 +1094,17 @@ function alterarStatus(id,status){
     renderizar()
 }
 
-function remover(id){
-    if(!confirm("Deseja remover este cartão?")){ return; }
-    acessos = acessos.filter(acesso => acesso.id !== id);
-    salvar();
-    supabaseExcluirAcesso(id);
-    renderizar();
+async function remover(id){
+    if(!confirm("Deseja remover este cartão do Kanban de Acessos?")){
+        return
+    }
+
+    acessos = acessos.filter(acesso => acesso.id !== id)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
+
+    await supabaseExcluirAcesso(id)
+
+    renderizar()
 }
 
 function limparSaida(){
@@ -1490,6 +1490,27 @@ document.querySelectorAll(".kanban-coluna").forEach(coluna => {
 })
 
 window.addEventListener("DOMContentLoaded", carregar)
+
+async function atualizarAcessosAutomaticamente(){
+    const box = document.getElementById("boxFormatador")
+    const busca = document.getElementById("busca")
+
+    if(box && box.open){
+        return
+    }
+
+    if(busca && busca.value.trim()){
+        const dadosSupabase = await supabaseListarAcessos()
+        acessos = dadosSupabase
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
+        renderizar()
+        return
+    }
+
+    await carregar()
+}
+
+setInterval(atualizarAcessosAutomaticamente, 5000)
 </script>
 
 </body>

@@ -909,14 +909,14 @@ async function removerAutorizado(chave){
     const item = baseAutorizados.find(x => chaveBase(x) === chave)
     if(!item) return
 
-    if(!confirm(`Remover ${item.tecnico} - ${item.site} da base?`)){
+    if(!confirm(`Remover ${item.tecnico} - ${item.site} da Base de Autorizados?`)){
         return
     }
 
+    await supabaseRemoverAutorizadoPorChave(chave)
+
     baseAutorizados = baseAutorizados.filter(x => chaveBase(x) !== chave)
     localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
-
-    await supabaseRemoverAutorizadoPorChave(chave)
 
     atualizarResumo()
     pesquisarAutorizados()
@@ -1192,6 +1192,18 @@ async function carregarTela(){
 }
 
 window.addEventListener("DOMContentLoaded", carregarTela)
+
+async function atualizarAutorizadosAutomaticamente(){
+    const importador = document.querySelector(".importador-discreto")
+
+    if(importador && importador.open){
+        return
+    }
+
+    await carregarTela()
+}
+
+setInterval(atualizarAutorizadosAutomaticamente, 5000)
 </script>
 
 </body>
