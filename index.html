@@ -13,7 +13,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="styles.css?v=9">
 
 <style>
 /* ===== CONTROLE DE ACESSOS - KANBAN COM FORMATADOR EMBUTIDO ===== */
@@ -1071,7 +1071,6 @@ function adicionarCartao(){
     supabaseSalvarAcessos()
 
     renderizar()
-    atualizarContadoresPeloDOM()
     limparFormulario()
 
     fecharFormatador()
@@ -1398,29 +1397,6 @@ function passaFiltro(acesso){
     ].join(" ").toUpperCase().includes(busca)
 }
 
-
-function atualizarContadoresPeloDOM(){
-    const aguardando = document.querySelectorAll("#listaAguardando .card-acesso").length;
-    const liberado = document.querySelectorAll("#listaLiberado .card-acesso").length;
-    const entrada = document.querySelectorAll("#listaEntrada .card-acesso").length;
-    const saida = document.querySelectorAll("#listaSaida .card-acesso").length;
-
-    const set = (id, valor) => {
-        const el = document.getElementById(id);
-        if(el){ el.innerText = valor; }
-    };
-
-    set("qtdAguardando", aguardando);
-    set("qtdLiberado", liberado);
-    set("qtdEntrada", entrada);
-    set("qtdSaida", saida);
-
-    set("colAguardando", aguardando);
-    set("colLiberado", liberado);
-    set("colEntrada", entrada);
-    set("colSaida", saida);
-}
-
 function renderizar(){
     const listas = {
         aguardando: document.getElementById("listaAguardando"),
@@ -1490,8 +1466,6 @@ function renderizar(){
     document.getElementById("colLiberado").innerText = contadores.liberado
     document.getElementById("colEntrada").innerText = contadores.entrada
     document.getElementById("colSaida").innerText = contadores.saida
-
-    atualizarContadoresPeloDOM();
 }
 
 document.querySelectorAll(".kanban-coluna").forEach(coluna => {

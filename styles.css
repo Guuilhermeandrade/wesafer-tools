@@ -897,18 +897,23 @@ button:active,
     }
 }
 
-/* ===== CORREÇÃO FINAL LARGURA WESAFER V8 ===== */
+/* ===== CORREÇÃO FINAL LARGURA WESAFER V9 ===== */
 .conteudo-sistema{
     margin-left:var(--sidebar-fechada) !important;
     width:calc(100% - var(--sidebar-fechada)) !important;
-    padding:42px 24px !important;
+    padding:32px 18px !important;
 }
 
 .container{
-    max-width:1500px !important;
-    width:calc(100% - 40px) !important;
+    max-width:none !important;
+    width:calc(100vw - var(--sidebar-fechada) - 70px) !important;
+    margin:0 auto !important;
 }
 
 .kanban-board{
-    grid-template-columns:repeat(4,minmax(260px,1fr)) !important;
+    grid-template-columns:repeat(4,minmax(280px,1fr)) !important;
+}
+
+.area{
+    width:100% !important;
 }
