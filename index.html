@@ -13,7 +13,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=37">
+<link rel="stylesheet" href="styles.css?v=39">
 
 <style>
 /* ===== CONTROLE DE ACESSOS - KANBAN COM FORMATADOR EMBUTIDO ===== */
@@ -600,6 +600,64 @@
     width:165px !important;
 }
 
+
+/* ===== MENU DISCRETO DO USUÁRIO ===== */
+.topo-sistema{
+    position:relative;
+}
+
+.menu-usuario{position:fixed;top:12px;right:16px;z-index:10000;}
+
+.btn-menu-usuario{width:28px;height:28px;border:none;border-radius:6px;background:transparent!important;color:#94a3b8;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:none;transition:.2s;}
+
+.btn-menu-usuario:hover{background:rgba(148,163,184,.12)!important;color:#fff;}
+
+.dropdown-usuario{
+    position:absolute;
+    right:0;
+    top:46px;
+    min-width:180px;
+    background:linear-gradient(180deg,#0f172a,#020617);
+    border:1px solid rgba(147,197,253,.22);
+    border-radius:16px;
+    overflow:hidden;
+    display:none;
+    box-shadow:0 24px 55px rgba(0,0,0,.45);
+}
+
+.dropdown-usuario.aberto{
+    display:block;
+}
+
+.dropdown-usuario button{
+    width:100%;
+    min-height:44px;
+    border:none;
+    border-radius:0;
+    background:transparent!important;
+    color:#e5e7eb;
+    padding:13px 16px;
+    text-align:left;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:800;
+    box-shadow:none;
+    margin:0;
+}
+
+.dropdown-usuario button:hover{
+    background:rgba(37,99,235,.22)!important;
+}
+
+.dropdown-usuario .usuario-info{
+    padding:12px 16px;
+    color:#93c5fd;
+    font-size:11px;
+    font-weight:900;
+    border-bottom:1px solid rgba(147,197,253,.14);
+    letter-spacing:.5px;
+}
+
 </style>
 
 </head>
@@ -647,6 +705,16 @@
 
     <div class="topo-logo">
         <img src="assets/img/wesafer.png" alt="WE SAFER">
+    </div>
+
+
+    <div class="menu-usuario">
+        <button id="btnMenuUsuario" class="btn-menu-usuario" title="Menu do usuário">⋯</button>
+
+        <div id="menuUsuario" class="dropdown-usuario">
+            <div class="usuario-info">WESAFER TOOLS</div>
+            <button onclick="sairSistema()">🚪 Sair</button>
+        </div>
     </div>
 
 </header>
@@ -851,6 +919,45 @@ let acessos = []
 let modoCompacto = false
 
 const STORAGE_KEY = "acessosWesaferKanban"
+
+const AUTH_KEY = "wesaferAuth"
+
+async function verificarLogin(){
+    const sessao = JSON.parse(localStorage.getItem(AUTH_KEY) || "null")
+
+    if(!sessao || !sessao.access_token){
+        window.location.href = "login.html"
+        return false
+    }
+
+    try{
+        const resposta = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+            headers:{
+                apikey: SUPABASE_ANON_KEY,
+                Authorization:`Bearer ${sessao.access_token}`
+            }
+        })
+
+        if(!resposta.ok){
+            localStorage.removeItem(AUTH_KEY)
+            window.location.href = "login.html"
+            return false
+        }
+
+        return true
+    }catch(erro){
+        localStorage.removeItem(AUTH_KEY)
+        window.location.href = "login.html"
+        return false
+    }
+}
+
+function sairSistema(){
+    localStorage.removeItem(AUTH_KEY)
+    window.location.href = "login.html"
+}
+
+
 
 async function supabaseListarAcessos(){
     const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?select=*&order=created_at.desc`, {
@@ -1824,7 +1931,37 @@ document.querySelectorAll(".kanban-coluna").forEach(coluna => {
     })
 })
 
-window.addEventListener("DOMContentLoaded", () => {
+
+function configurarMenuUsuario(){
+    const btnMenuUsuario = document.getElementById("btnMenuUsuario")
+    const menuUsuario = document.getElementById("menuUsuario")
+
+    if(!btnMenuUsuario || !menuUsuario){
+        return
+    }
+
+    btnMenuUsuario.addEventListener("click", evento => {
+        evento.stopPropagation()
+        menuUsuario.classList.toggle("aberto")
+    })
+
+    menuUsuario.addEventListener("click", evento => {
+        evento.stopPropagation()
+    })
+
+    document.addEventListener("click", () => {
+        menuUsuario.classList.remove("aberto")
+    })
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+    const logado = await verificarLogin()
+
+    if(!logado){
+        return
+    }
+
+    configurarMenuUsuario()
     atualizarDataPlantao()
     carregar()
 })

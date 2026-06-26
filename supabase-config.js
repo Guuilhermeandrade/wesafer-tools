@@ -19,3 +19,5 @@ function supabaseHeaders(prefer = ""){
 function dataISOAgora(){
     return new Date().toISOString();
 }
+const SUPABASE_URL = SUPABASE_REST_URL.replace("/rest/v1", "");
+const SUPABASE_ANON_KEY = SUPABASE_KEY;

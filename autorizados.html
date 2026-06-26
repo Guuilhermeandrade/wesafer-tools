@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=21">
+<link rel="stylesheet" href="styles.css?v=40">
 
 <style>
 .container{
@@ -354,6 +354,118 @@
     color:#fff;
 }
 
+
+/* ===== TOPO COMPACTO / AUTORIZADOS ===== */
+.topo-sistema{
+    margin-bottom:2px !important;
+    padding-top:0 !important;
+    padding-bottom:6px !important;
+    min-height:82px !important;
+    align-items:flex-start !important;
+    position:relative;
+}
+
+.topo-logo{
+    align-self:flex-start !important;
+    margin-top:-18px !important;
+}
+
+.topo-logo img{
+    width:165px !important;
+}
+
+.data-plantao{
+    margin-top:4px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    width:max-content;
+    padding:6px 12px;
+    border-radius:999px;
+    background:rgba(30,41,59,.75);
+    border:1px solid rgba(147,197,253,.20);
+    color:#93c5fd;
+    font-size:12px;
+    font-weight:900;
+    letter-spacing:.4px;
+}
+
+/* ===== MENU DISCRETO DO USUÁRIO ===== */
+.menu-usuario{
+    position:fixed;
+    top:12px;
+    right:16px;
+    z-index:10000;
+}
+
+.btn-menu-usuario{
+    width:28px;
+    height:28px;
+    border:none;
+    border-radius:6px;
+    background:transparent!important;
+    color:#94a3b8;
+    font-size:18px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    box-shadow:none;
+    transition:.2s;
+}
+
+.btn-menu-usuario:hover{
+    background:rgba(148,163,184,.12)!important;
+    color:#fff;
+}
+
+.dropdown-usuario{
+    position:absolute;
+    right:0;
+    top:34px;
+    min-width:180px;
+    background:linear-gradient(180deg,#0f172a,#020617);
+    border:1px solid rgba(147,197,253,.22);
+    border-radius:16px;
+    overflow:hidden;
+    display:none;
+    box-shadow:0 24px 55px rgba(0,0,0,.45);
+}
+
+.dropdown-usuario.aberto{
+    display:block;
+}
+
+.dropdown-usuario button{
+    width:100%;
+    min-height:44px;
+    border:none;
+    border-radius:0;
+    background:transparent!important;
+    color:#e5e7eb;
+    padding:13px 16px;
+    text-align:left;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:800;
+    box-shadow:none;
+    margin:0;
+}
+
+.dropdown-usuario button:hover{
+    background:rgba(37,99,235,.22)!important;
+}
+
+.dropdown-usuario .usuario-info{
+    padding:12px 16px;
+    color:#93c5fd;
+    font-size:11px;
+    font-weight:900;
+    border-bottom:1px solid rgba(147,197,253,.14);
+    letter-spacing:.5px;
+}
+
 </style>
 </head>
 
@@ -384,16 +496,23 @@
 
 <header class="topo topo-sistema">
     <div class="topo-info">
-        <div class="badge">👷 BASE OPERACIONAL DE AUTORIZADOS</div>
-        <h1>Autorizados</h1>
-        <p class="subtitulo">
-            Pesquise autorizados, gere acessos em LIBERADO e copie em um clique a lista dos acessos que expiram hoje.
-        </p>
-    </div>
+        <div class="badge">👷TÉCNICOS AUTORIZADOS</div>
+        <div id="dataPlantao" class="data-plantao"></div>
+</div>
 
     <div class="topo-logo">
         <img src="assets/img/wesafer.png" alt="WE SAFER">
     </div>
+
+    <div class="menu-usuario">
+        <button id="btnMenuUsuario" class="btn-menu-usuario" title="Menu do usuário">⋯</button>
+
+        <div id="menuUsuario" class="dropdown-usuario">
+            <div class="usuario-info">WESAFER TOOLS</div>
+            <button onclick="sairSistema()">🚪 Sair</button>
+        </div>
+    </div>
+
 </header>
 
 <main class="area">
@@ -472,6 +591,84 @@ CRISTIANO CALIXTO - SPEJM: 14219 23/06 À 30/06"></textarea>
 
 <script src="supabase-config.js"></script>
 <script>
+
+const AUTH_KEY = "wesaferAuth"
+
+async function verificarLogin(){
+    const sessao = JSON.parse(localStorage.getItem(AUTH_KEY) || "null")
+
+    if(!sessao || !sessao.access_token){
+        window.location.href = "login.html"
+        return false
+    }
+
+    try{
+        const resposta = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+            headers:{
+                apikey: SUPABASE_ANON_KEY,
+                Authorization:`Bearer ${sessao.access_token}`
+            }
+        })
+
+        if(!resposta.ok){
+            localStorage.removeItem(AUTH_KEY)
+            window.location.href = "login.html"
+            return false
+        }
+
+        return true
+    }catch(erro){
+        localStorage.removeItem(AUTH_KEY)
+        window.location.href = "login.html"
+        return false
+    }
+}
+
+function sairSistema(){
+    localStorage.removeItem(AUTH_KEY)
+    window.location.href = "login.html"
+}
+
+function atualizarDataPlantao(){
+    const campo = document.getElementById("dataPlantao")
+    if(!campo){
+        return
+    }
+
+    const hoje = new Date()
+    const data = hoje.toLocaleDateString("pt-BR", {
+        weekday:"long",
+        day:"2-digit",
+        month:"2-digit",
+        year:"numeric"
+    })
+
+    campo.innerText = `📅 ${data.toUpperCase()}`
+}
+
+function configurarMenuUsuario(){
+    const btnMenuUsuario = document.getElementById("btnMenuUsuario")
+    const menuUsuario = document.getElementById("menuUsuario")
+
+    if(!btnMenuUsuario || !menuUsuario){
+        return
+    }
+
+    btnMenuUsuario.addEventListener("click", evento => {
+        evento.stopPropagation()
+        menuUsuario.classList.toggle("aberto")
+    })
+
+    menuUsuario.addEventListener("click", evento => {
+        evento.stopPropagation()
+    })
+
+    document.addEventListener("click", () => {
+        menuUsuario.classList.remove("aberto")
+    })
+}
+
+
 const STORAGE_BASE = "baseAutorizadosWesafer"
 const STORAGE_ACESSOS = "acessosWesaferKanban"
 
@@ -1283,7 +1480,17 @@ async function carregarTela(){
     }
 }
 
-window.addEventListener("DOMContentLoaded", carregarTela)
+window.addEventListener("DOMContentLoaded", async () => {
+    const logado = await verificarLogin()
+
+    if(!logado){
+        return
+    }
+
+    configurarMenuUsuario()
+    atualizarDataPlantao()
+    carregarTela()
+})
 
 async function atualizarAutorizadosAutomaticamente(){
     const importador = document.querySelector(".importador-discreto")
