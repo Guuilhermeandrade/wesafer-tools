@@ -13,7 +13,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=26">
+<link rel="stylesheet" href="styles.css?v=28">
 
 <style>
 /* ===== CONTROLE DE ACESSOS - KANBAN COM FORMATADOR EMBUTIDO ===== */
@@ -492,6 +492,56 @@
 }
 
 
+/* ===== REVISÃO MANUAL - PORTA E ATIVIDADE ===== */
+.revisao-acesso{
+    grid-column:1 / -1;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+.grupo-revisao{
+    background:rgba(15,23,42,.42);
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:16px;
+    padding:14px;
+}
+
+.grupo-revisao .titulo-revisao{
+    display:block;
+    color:#93c5fd;
+    font-size:12px;
+    font-weight:900;
+    letter-spacing:.8px;
+    margin-bottom:10px;
+}
+
+.opcoes-revisao{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.opcao-check{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 12px;
+    border-radius:12px;
+    background:rgba(15,23,42,.55);
+    color:#e2e8f0;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+    border:1px solid rgba(148,163,184,.16);
+}
+
+.opcao-check input{
+    width:auto!important;
+    box-shadow:none!important;
+    cursor:pointer;
+}
+
 .data-plantao{
     margin-top:8px;
     display:inline-flex;
@@ -506,6 +556,12 @@
     font-size:12px;
     font-weight:900;
     letter-spacing:.4px;
+}
+
+@media(max-width:900px){
+    .revisao-acesso{
+        grid-template-columns:1fr;
+    }
 }
 
 </style>
@@ -675,6 +731,36 @@
             <input id="periodo" placeholder="22/06 À 22/07">
         </div>
 
+        <div class="revisao-acesso">
+            <div class="grupo-revisao">
+                <span class="titulo-revisao">PORTA DE ACESSO</span>
+                <div class="opcoes-revisao">
+                    <label class="opcao-check">
+                        <input type="checkbox" id="portaMoura">
+                        MOURA
+                    </label>
+                    <label class="opcao-check">
+                        <input type="checkbox" id="portaOperadora">
+                        OPERADORA
+                    </label>
+                </div>
+            </div>
+
+            <div class="grupo-revisao">
+                <span class="titulo-revisao">TIPO DE ATIVIDADE</span>
+                <div class="opcoes-revisao">
+                    <label class="opcao-check">
+                        <input type="checkbox" id="implantacao">
+                        IMPLANTAÇÃO
+                    </label>
+                    <label class="opcao-check">
+                        <input type="checkbox" id="operacao">
+                        OPERAÇÃO
+                    </label>
+                </div>
+            </div>
+        </div>
+
         <div class="campo campo-full">
             <label for="acao">AÇÃO</label>
             <input id="acao" placeholder="VISTORIA ACEITE IMPLANTAÇÃO, PRECISO DO ACESSO AMBOS LADOS. SÃO DOIS CADEADOS.">
@@ -754,9 +840,10 @@ async function supabaseListarAcessos(){
             empresa: item.empresa || "",
             periodo: item.periodo || "",
             acao: item.acao || "",
-            portaOperadora: true,
-            implantacao: true,
-            operacao: false,
+            portaMoura: item.porta_moura === true,
+            portaOperadora: item.porta_operadora !== false,
+            implantacao: item.implantacao !== false,
+            operacao: item.operacao === true,
             status: item.status || "aguardando",
             origem: item.origem || "",
             criadoEm: item.created_at || "",
@@ -774,6 +861,10 @@ function acessoParaSupabase(acesso){
         empresa: acesso.empresa || "",
         periodo: acesso.periodo || "",
         acao: acesso.acao || "",
+        porta_moura: acesso.portaMoura === true,
+        porta_operadora: acesso.portaOperadora !== false,
+        implantacao: acesso.implantacao !== false,
+        operacao: acesso.operacao === true,
         status: acesso.status || "aguardando",
         origem: acesso.origem || "index",
         atualizado_em: dataISOAgora()
@@ -978,6 +1069,24 @@ function extrairChamado(){
         acao += "."
     }
 
+    const textoNormalizado = texto
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"")
+
+    // Leitura específica dos campos do GLPI
+    const portaMoura =
+        /porta de acesso moura[\s\S]{0,50}porta moura/i.test(textoNormalizado)
+
+    const portaOperadora =
+        /porta de acesso operadora[\s\S]{0,50}porta operadora/i.test(textoNormalizado)
+
+    const implantacao =
+        /atividade[\s\S]{0,30}implantacao/i.test(textoNormalizado)
+
+    const operacao =
+        /atividade[\s\S]{0,30}operacao/i.test(textoNormalizado)
+
     document.getElementById("tecnico").value = tecnico
     document.getElementById("site").value = siteAjustado
     document.getElementById("ticket").value = ticket
@@ -985,11 +1094,21 @@ function extrairChamado(){
     document.getElementById("empresa").value = empresa
     document.getElementById("periodo").value = periodo
     document.getElementById("acao").value = acao
+
+    document.getElementById("portaMoura").checked = portaMoura
+    document.getElementById("portaOperadora").checked = portaOperadora || !portaMoura
+    document.getElementById("implantacao").checked = implantacao || !operacao
+    document.getElementById("operacao").checked = operacao
 }
 
 function limparFormulario(){
     ["chamadoBruto","tecnico","site","ticket","solicitante","empresa","periodo","acao"].forEach(id => {
         document.getElementById(id).value = ""
+    })
+
+    ;["portaMoura","portaOperadora","implantacao","operacao"].forEach(id => {
+        const campo = document.getElementById(id)
+        if(campo){ campo.checked = false }
     })
 }
 
@@ -1047,6 +1166,7 @@ function salvarNaBaseAutorizados(acesso, statusBase = "autorizado"){
         empresa: acesso.empresa || "",
         periodo: acesso.periodo || "",
         acao: acesso.acao || "",
+        portaMoura: acesso.portaMoura === true,
         portaOperadora: acesso.portaOperadora !== false,
         implantacao: acesso.implantacao !== false,
         operacao: acesso.operacao === true,
@@ -1096,6 +1216,14 @@ async function adicionarCartao(){
         return
     }
 
+    if(!document.getElementById("portaMoura").checked && !document.getElementById("portaOperadora").checked){
+        document.getElementById("portaOperadora").checked = true
+    }
+
+    if(!document.getElementById("implantacao").checked && !document.getElementById("operacao").checked){
+        document.getElementById("implantacao").checked = true
+    }
+
     const novoAcesso = {
         id: Date.now(),
         tecnico,
@@ -1105,9 +1233,10 @@ async function adicionarCartao(){
         empresa,
         periodo,
         acao,
-        portaOperadora: true,
-        implantacao: true,
-        operacao: false,
+        portaMoura: document.getElementById("portaMoura").checked,
+        portaOperadora: document.getElementById("portaOperadora").checked,
+        implantacao: document.getElementById("implantacao").checked,
+        operacao: document.getElementById("operacao").checked,
         status: "aguardando",
         criadoEm: new Date().toLocaleString("pt-BR"),
         atualizadoEm: new Date().toLocaleString("pt-BR")
@@ -1215,7 +1344,7 @@ function copiarTexto(id,tipo){
         return
     }
 
-    const portaMoura = acesso.portaOperadora ? " " : "X"
+    const portaMoura = acesso.portaMoura ? "X" : (acesso.portaOperadora ? " " : "X")
     const operadora = acesso.portaOperadora ? "X" : " "
     const implantacao = acesso.implantacao ? "X" : " "
     const operacao = acesso.operacao ? "X" : " "
@@ -1484,16 +1613,7 @@ function renderizar(){
 
     acessos
         .filter(acesso => acesso.status !== "arquivado")
-        .sort((a,b) => {
-            const dataA = new Date(a.atualizadoEm || a.criadoEm || 0).getTime()
-            const dataB = new Date(b.atualizadoEm || b.criadoEm || 0).getTime()
-
-            if(!isNaN(dataA) && !isNaN(dataB) && dataA !== dataB){
-                return dataB - dataA
-            }
-
-            return Number(b.id || 0) - Number(a.id || 0)
-        })
+        .sort((a,b) => Number(b.id || 0) - Number(a.id || 0))
         .forEach(acesso => {
         contadores[acesso.status]++
 
