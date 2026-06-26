@@ -13,7 +13,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=35">
+<link rel="stylesheet" href="styles.css?v=36">
 
 <style>
 /* ===== CONTROLE DE ACESSOS - KANBAN COM FORMATADOR EMBUTIDO ===== */
@@ -877,7 +877,8 @@ async function supabaseListarAcessos(){
             origem: item.origem || "",
             criadoEm: item.created_at || "",
             atualizadoEm: item.atualizado_em || "",
-            ordemColuna: item.atualizado_em || item.created_at || item.id
+            ordemColuna: Number(item.ordem_coluna || 0) || Number(item.id || 0),
+            dataUltimoMovimento: item.data_ultimo_movimento || item.atualizado_em || item.created_at || ""
         }));
 }
 
@@ -896,6 +897,8 @@ function acessoParaSupabase(acesso){
         implantacao: acesso.implantacao === true,
         operacao: acesso.operacao === true,
         status: acesso.status || "aguardando",
+        ordem_coluna: Number(acesso.ordemColuna || acesso.id || Date.now()),
+        data_ultimo_movimento: acesso.dataUltimoMovimento || dataISOAgora(),
         origem: acesso.origem || "index",
         atualizado_em: dataISOAgora()
     };
@@ -1203,6 +1206,8 @@ function salvarNaBaseAutorizados(acesso, statusBase = "autorizado"){
         operacao: acesso.operacao === true,
         origem: "acessos",
         statusBase: statusBase,
+        ordemColuna: acesso.ordemColuna || Date.now(),
+        dataUltimoMovimento: acesso.dataUltimoMovimento || dataISOAgora(),
         criadoEm: new Date().toLocaleString("pt-BR"),
         atualizadoEm: new Date().toLocaleString("pt-BR")
     }
@@ -1271,7 +1276,8 @@ async function adicionarCartao(){
         status: "aguardando",
         criadoEm: dataISOAgora(),
         atualizadoEm: dataISOAgora(),
-        ordemColuna: Date.now()
+        ordemColuna: Date.now(),
+        dataUltimoMovimento: dataISOAgora()
     }
     novoAcesso.status = "aguardando"
 
@@ -1293,6 +1299,7 @@ function alterarStatus(id,status){
             acesso.status = status
             acesso.atualizadoEm = dataISOAgora()
             acesso.ordemColuna = Date.now()
+            acesso.dataUltimoMovimento = dataISOAgora()
 
             if(status === "aguardando"){
                 salvarNaBaseAutorizados(acesso, "aguardando")
@@ -1611,14 +1618,7 @@ function copiarAnotacaoSelecionada(){
 
 
 function valorOrdemColuna(acesso){
-    const valor = acesso.ordemColuna || acesso.atualizadoEm || acesso.criadoEm || acesso.id || 0
-    const data = new Date(valor).getTime()
-
-    if(!isNaN(data)){
-        return data
-    }
-
-    return Number(valor) || Number(acesso.id || 0)
+    return Number(acesso.ordemColuna || acesso.id || 0)
 }
 
 function passaFiltro(acesso){
