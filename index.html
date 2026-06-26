@@ -13,7 +13,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=31">
+<link rel="stylesheet" href="styles.css?v=33">
 
 <style>
 /* ===== CONTROLE DE ACESSOS - KANBAN COM FORMATADOR EMBUTIDO ===== */
@@ -562,6 +562,21 @@
     .revisao-acesso{
         grid-template-columns:1fr;
     }
+}
+
+
+/* ===== DRAG LIMPO: SOMENTE O CARD ===== */
+.card-acesso.arrastando{
+    opacity:.45;
+}
+
+.drag-clone-card{
+    position:absolute;
+    top:-9999px;
+    left:-9999px;
+    width:320px;
+    pointer-events:none;
+    z-index:999999;
 }
 
 </style>
@@ -1646,6 +1661,26 @@ function renderizar(){
 
         card.addEventListener("dragstart", evento => {
             evento.dataTransfer.setData("text/plain", acesso.id)
+
+            const clone = card.cloneNode(true)
+            clone.classList.add("drag-clone-card")
+            clone.style.width = `${card.offsetWidth}px`
+            document.body.appendChild(clone)
+
+            evento.dataTransfer.effectAllowed = "move"
+            evento.dataTransfer.setDragImage(clone, 20, 20)
+
+            card.classList.add("arrastando")
+
+            setTimeout(() => {
+                if(clone && clone.parentNode){
+                    clone.parentNode.removeChild(clone)
+                }
+            }, 0)
+        })
+
+        card.addEventListener("dragend", () => {
+            card.classList.remove("arrastando")
         })
 
         listas[acesso.status].appendChild(card)
