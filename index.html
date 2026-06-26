@@ -13,7 +13,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=28">
+<link rel="stylesheet" href="styles.css?v=29">
 
 <style>
 /* ===== CONTROLE DE ACESSOS - KANBAN COM FORMATADOR EMBUTIDO ===== */
@@ -840,10 +840,10 @@ async function supabaseListarAcessos(){
             empresa: item.empresa || "",
             periodo: item.periodo || "",
             acao: item.acao || "",
-            portaMoura: item.porta_moura === true,
-            portaOperadora: item.porta_operadora !== false,
-            implantacao: item.implantacao !== false,
-            operacao: item.operacao === true,
+            portaMoura: false,
+            portaOperadora: true,
+            implantacao: true,
+            operacao: false,
             status: item.status || "aguardando",
             origem: item.origem || "",
             criadoEm: item.created_at || "",
@@ -861,10 +861,6 @@ function acessoParaSupabase(acesso){
         empresa: acesso.empresa || "",
         periodo: acesso.periodo || "",
         acao: acesso.acao || "",
-        porta_moura: acesso.portaMoura === true,
-        porta_operadora: acesso.portaOperadora !== false,
-        implantacao: acesso.implantacao !== false,
-        operacao: acesso.operacao === true,
         status: acesso.status || "aguardando",
         origem: acesso.origem || "index",
         atualizado_em: dataISOAgora()
@@ -1246,6 +1242,8 @@ async function adicionarCartao(){
     acessos.unshift(novoAcesso)
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
+    renderizar()
+
     await supabaseSalvarAcessos()
     salvarNaBaseAutorizados(novoAcesso, "aguardando")
 
