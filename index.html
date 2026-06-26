@@ -13,7 +13,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=33">
+<link rel="stylesheet" href="styles.css?v=34">
 
 <style>
 /* ===== CONTROLE DE ACESSOS - KANBAN COM FORMATADOR EMBUTIDO ===== */
@@ -577,6 +577,27 @@
     width:320px;
     pointer-events:none;
     z-index:999999;
+    box-shadow:0 10px 25px rgba(0,0,0,.28) !important;
+    transform:rotate(1deg);
+}
+
+
+/* ===== AJUSTE COMPACTO DO TOPO ===== */
+.topo-sistema{
+    margin-bottom:2px !important;
+    padding-top:0 !important;
+    padding-bottom:6px !important;
+    min-height:82px !important;
+    align-items:flex-start !important;
+}
+
+.topo-logo{
+    align-self:flex-start !important;
+    margin-top:-18px !important;
+}
+
+.topo-logo img{
+    width:165px !important;
 }
 
 </style>
@@ -855,7 +876,8 @@ async function supabaseListarAcessos(){
             status: item.status || "aguardando",
             origem: item.origem || "",
             criadoEm: item.created_at || "",
-            atualizadoEm: item.atualizado_em || ""
+            atualizadoEm: item.atualizado_em || "",
+            ordemColuna: item.atualizado_em || item.created_at || item.id
         }));
 }
 
@@ -1247,8 +1269,9 @@ async function adicionarCartao(){
         implantacao: document.getElementById("implantacao").checked,
         operacao: document.getElementById("operacao").checked,
         status: "aguardando",
-        criadoEm: new Date().toLocaleString("pt-BR"),
-        atualizadoEm: new Date().toLocaleString("pt-BR")
+        criadoEm: dataISOAgora(),
+        atualizadoEm: dataISOAgora(),
+        ordemColuna: Date.now()
     }
     novoAcesso.status = "aguardando"
 
@@ -1268,7 +1291,8 @@ function alterarStatus(id,status){
     acessos = acessos.map(acesso => {
         if(acesso.id === id){
             acesso.status = status
-            acesso.atualizadoEm = new Date().toLocaleString("pt-BR")
+            acesso.atualizadoEm = dataISOAgora()
+            acesso.ordemColuna = Date.now()
 
             if(status === "aguardando"){
                 salvarNaBaseAutorizados(acesso, "aguardando")
@@ -1585,6 +1609,18 @@ function copiarAnotacaoSelecionada(){
 }
 
 
+
+function valorOrdemColuna(acesso){
+    const valor = acesso.ordemColuna || acesso.atualizadoEm || acesso.criadoEm || acesso.id || 0
+    const data = new Date(valor).getTime()
+
+    if(!isNaN(data)){
+        return data
+    }
+
+    return Number(valor) || Number(acesso.id || 0)
+}
+
 function passaFiltro(acesso){
     const busca = document.getElementById("busca").value.trim().toUpperCase()
 
@@ -1622,7 +1658,7 @@ function renderizar(){
 
     acessos
         .filter(acesso => acesso.status !== "arquivado")
-        .sort((a,b) => Number(b.id || 0) - Number(a.id || 0))
+        .sort((a,b) => valorOrdemColuna(b) - valorOrdemColuna(a))
         .forEach(acesso => {
         contadores[acesso.status]++
 
@@ -1668,7 +1704,8 @@ function renderizar(){
             document.body.appendChild(clone)
 
             evento.dataTransfer.effectAllowed = "move"
-            evento.dataTransfer.setDragImage(clone, 20, 20)
+            const deslocamentoX = Math.min(40, Math.max(12, card.offsetWidth * 0.08))
+            evento.dataTransfer.setDragImage(clone, deslocamentoX, 18)
 
             card.classList.add("arrastando")
 
