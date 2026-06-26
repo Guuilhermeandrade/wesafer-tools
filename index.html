@@ -13,7 +13,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=36">
+<link rel="stylesheet" href="styles.css?v=37">
 
 <style>
 /* ===== CONTROLE DE ACESSOS - KANBAN COM FORMATADOR EMBUTIDO ===== */
@@ -914,6 +914,31 @@ async function supabaseSalvarAcessos(){
     if(!resposta.ok){ console.error("Erro ao salvar acessos no Supabase:", await resposta.text()); }
 }
 
+
+async function supabaseAtualizarMovimento(acesso){
+    if(!acesso || !acesso.id){
+        return false
+    }
+
+    const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?id=eq.${acesso.id}`, {
+        method:"PATCH",
+        headers:supabaseHeaders("return=minimal"),
+        body:JSON.stringify({
+            status: acesso.status || "aguardando",
+            ordem_coluna: Number(acesso.ordemColuna || Date.now()),
+            data_ultimo_movimento: acesso.dataUltimoMovimento || dataISOAgora(),
+            atualizado_em: acesso.atualizadoEm || dataISOAgora()
+        })
+    })
+
+    if(!resposta.ok){
+        console.error("Erro ao atualizar movimento do acesso:", await resposta.text())
+        return false
+    }
+
+    return true
+}
+
 async function supabaseExcluirAcesso(id){
     const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?id=eq.${id}`, {
         method:"DELETE",
@@ -1031,10 +1056,42 @@ function salvar(){
 }
 
 
+
+function mesclarOrdemLocal(dadosSupabase){
+    const backup = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]")
+    const mapaLocal = new Map()
+
+    backup.forEach(item => {
+        mapaLocal.set(Number(item.id), item)
+    })
+
+    return dadosSupabase.map(item => {
+        const local = mapaLocal.get(Number(item.id))
+
+        if(!local){
+            return item
+        }
+
+        const ordemSupabase = Number(item.ordemColuna || 0)
+        const ordemLocal = Number(local.ordemColuna || 0)
+
+        if(ordemLocal > ordemSupabase){
+            return {
+                ...item,
+                ordemColuna: ordemLocal,
+                dataUltimoMovimento: local.dataUltimoMovimento || item.dataUltimoMovimento || "",
+                atualizadoEm: local.atualizadoEm || item.atualizadoEm || ""
+            }
+        }
+
+        return item
+    })
+}
+
 async function carregar(){
     try{
         const dadosSupabase = await supabaseListarAcessos();
-        acessos = dadosSupabase;
+        acessos = mesclarOrdemLocal(dadosSupabase);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos));
     }catch(erro){
         console.warn("Carregando acessos do backup local:", erro);
@@ -1293,13 +1350,18 @@ async function adicionarCartao(){
     fecharFormatador()
 }
 
-function alterarStatus(id,status){
+async function alterarStatus(id,status){
+    let acessoMovido = null
+    const agoraOrdem = Date.now()
+    const agoraIso = dataISOAgora()
+
     acessos = acessos.map(acesso => {
         if(acesso.id === id){
             acesso.status = status
-            acesso.atualizadoEm = dataISOAgora()
-            acesso.ordemColuna = Date.now()
-            acesso.dataUltimoMovimento = dataISOAgora()
+            acesso.atualizadoEm = agoraIso
+            acesso.ordemColuna = agoraOrdem
+            acesso.dataUltimoMovimento = agoraIso
+            acessoMovido = acesso
 
             if(status === "aguardando"){
                 salvarNaBaseAutorizados(acesso, "aguardando")
@@ -1313,8 +1375,12 @@ function alterarStatus(id,status){
         return acesso
     })
 
-    salvar()
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
     renderizar()
+
+    if(acessoMovido){
+        await supabaseAtualizarMovimento(acessoMovido)
+    }
 }
 
 async function remover(id){
