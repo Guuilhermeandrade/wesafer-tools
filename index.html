@@ -13,7 +13,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=34">
+<link rel="stylesheet" href="styles.css?v=35">
 
 <style>
 /* ===== CONTROLE DE ACESSOS - KANBAN COM FORMATADOR EMBUTIDO ===== */
@@ -1704,8 +1704,11 @@ function renderizar(){
             document.body.appendChild(clone)
 
             evento.dataTransfer.effectAllowed = "move"
-            const deslocamentoX = Math.min(40, Math.max(12, card.offsetWidth * 0.08))
-            evento.dataTransfer.setDragImage(clone, deslocamentoX, 18)
+            const rect = card.getBoundingClientRect()
+            const deslocamentoX = evento.clientX - rect.left
+            const deslocamentoY = evento.clientY - rect.top
+
+            evento.dataTransfer.setDragImage(clone, deslocamentoX, deslocamentoY)
 
             card.classList.add("arrastando")
 
