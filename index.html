@@ -13,7 +13,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=23">
+<link rel="stylesheet" href="styles.css?v=26">
 
 <style>
 /* ===== CONTROLE DE ACESSOS - KANBAN COM FORMATADOR EMBUTIDO ===== */
@@ -491,6 +491,23 @@
     }
 }
 
+
+.data-plantao{
+    margin-top:8px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    width:max-content;
+    padding:6px 12px;
+    border-radius:999px;
+    background:rgba(30,41,59,.75);
+    border:1px solid rgba(147,197,253,.20);
+    color:#93c5fd;
+    font-size:12px;
+    font-weight:900;
+    letter-spacing:.4px;
+}
+
 </style>
 
 </head>
@@ -538,6 +555,8 @@
         <p class="subtitulo">
             Cole o chamado bruto, revise os campos e adicione o cartão. O painel salva tudo no Supabase.
         </p>
+
+        <div id="dataPlantao" class="data-plantao"></div>
 
     </div>
 
@@ -833,6 +852,24 @@ async function supabaseSalvarAutorizado(acesso, statusBase = "autorizado"){
     }
 }
 
+
+
+function atualizarDataPlantao(){
+    const campo = document.getElementById("dataPlantao")
+    if(!campo){
+        return
+    }
+
+    const hoje = new Date()
+    const data = hoje.toLocaleDateString("pt-BR", {
+        weekday:"long",
+        day:"2-digit",
+        month:"2-digit",
+        year:"numeric"
+    })
+
+    campo.innerText = `📅 ${data.toUpperCase()}`
+}
 
 function pegar(regex,texto){
     const match = texto.match(regex)
@@ -1445,7 +1482,19 @@ function renderizar(){
         saida: 0
     }
 
-    acessos.filter(acesso => acesso.status !== "arquivado").forEach(acesso => {
+    acessos
+        .filter(acesso => acesso.status !== "arquivado")
+        .sort((a,b) => {
+            const dataA = new Date(a.atualizadoEm || a.criadoEm || 0).getTime()
+            const dataB = new Date(b.atualizadoEm || b.criadoEm || 0).getTime()
+
+            if(!isNaN(dataA) && !isNaN(dataB) && dataA !== dataB){
+                return dataB - dataA
+            }
+
+            return Number(b.id || 0) - Number(a.id || 0)
+        })
+        .forEach(acesso => {
         contadores[acesso.status]++
 
         if(!passaFiltro(acesso)){
@@ -1520,7 +1569,10 @@ document.querySelectorAll(".kanban-coluna").forEach(coluna => {
     })
 })
 
-window.addEventListener("DOMContentLoaded", carregar)
+window.addEventListener("DOMContentLoaded", () => {
+    atualizarDataPlantao()
+    carregar()
+})
 
 async function atualizarAcessosAutomaticamente(){
     const box = document.getElementById("boxFormatador")
