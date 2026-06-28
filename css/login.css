@@ -1,0 +1,142 @@
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:'Inter',sans-serif;
+}
+
+body{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+        radial-gradient(circle at top left,rgba(37,99,235,.25),transparent 35%),
+        radial-gradient(circle at bottom right,rgba(14,165,233,.18),transparent 35%),
+        linear-gradient(180deg,#020617,#0f172a);
+    color:#e5e7eb;
+    padding:20px;
+}
+
+.login-card{
+    width:100%;
+    max-width:430px;
+    background:rgba(15,23,42,.82);
+    border:1px solid rgba(147,197,253,.22);
+    border-radius:26px;
+    padding:34px;
+    box-shadow:0 28px 80px rgba(0,0,0,.48);
+    backdrop-filter:blur(14px);
+}
+
+.logo{
+    display:flex;
+    justify-content:center;
+    margin-bottom:22px;
+}
+
+.logo img{
+    max-width:190px;
+    width:60%;
+}
+
+.badge{
+    width:max-content;
+    max-width:100%;
+    margin:0 auto 14px;
+    padding:7px 13px;
+    border-radius:999px;
+    background:rgba(37,99,235,.18);
+    border:1px solid rgba(147,197,253,.22);
+    color:#93c5fd;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.7px;
+    text-align:center;
+}
+
+h1{
+    text-align:center;
+    font-size:24px;
+    margin-bottom:8px;
+    font-weight:900;
+}
+
+.subtitulo{
+    text-align:center;
+    color:#94a3b8;
+    font-size:13px;
+    line-height:1.5;
+    margin-bottom:26px;
+}
+
+.campo{
+    margin-bottom:14px;
+}
+
+label{
+    display:block;
+    font-size:12px;
+    font-weight:900;
+    color:#bfdbfe;
+    margin-bottom:7px;
+    letter-spacing:.5px;
+}
+
+input{
+    width:100%;
+    min-height:48px;
+    border-radius:14px;
+    border:1px solid rgba(147,197,253,.22);
+    background:#020617;
+    color:#e5e7eb;
+    padding:0 14px;
+    font-size:14px;
+    outline:none;
+}
+
+input:focus{
+    border-color:#38bdf8;
+    box-shadow:0 0 0 3px rgba(56,189,248,.12);
+}
+
+button{
+    width:100%;
+    min-height:50px;
+    border:none;
+    border-radius:15px;
+    margin-top:10px;
+    cursor:pointer;
+    color:#fff;
+    font-size:13px;
+    font-weight:900;
+    letter-spacing:.6px;
+    background:linear-gradient(135deg,#2563eb,#0ea5e9);
+    box-shadow:0 14px 30px rgba(14,165,233,.22);
+}
+
+button:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+}
+
+.erro{
+    display:none;
+    margin-top:16px;
+    padding:12px;
+    border-radius:13px;
+    background:rgba(220,38,38,.15);
+    border:1px solid rgba(248,113,113,.28);
+    color:#fecaca;
+    font-size:13px;
+    line-height:1.4;
+    text-align:center;
+}
+
+.rodape{
+    margin-top:22px;
+    text-align:center;
+    color:#64748b;
+    font-size:11px;
+    font-weight:700;
+}
