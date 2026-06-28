@@ -13,7 +13,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=41">
+<link rel="stylesheet" href="styles.css?v=42">
 
 <style>
 /* ===== CONTROLE DE ACESSOS - KANBAN COM FORMATADOR EMBUTIDO ===== */
@@ -1074,15 +1074,72 @@ function acessoParaSupabase(acesso){
     };
 }
 
+async function supabaseSalvarAcessoNatural(acesso){
+    if(!acesso || !acesso.tecnico || !acesso.site || !acesso.ticket){
+        return acesso
+    }
+
+    const filtro = filtroNaturalAcesso(acesso)
+    const consulta = await fetch(`${SUPABASE_REST_URL}/acessos?select=id,created_at&${filtro}&order=created_at.desc`, {
+        headers:supabaseHeaders()
+    })
+
+    if(!consulta.ok){
+        console.error("Erro ao consultar acesso por chave natural:", await consulta.text())
+        return acesso
+    }
+
+    const existentes = await consulta.json()
+    const registro = acessoParaSupabase(acesso)
+
+    if(existentes.length){
+        registro.id = Number(existentes[0].id)
+        acesso.id = Number(existentes[0].id)
+
+        const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?id=eq.${existentes[0].id}`, {
+            method:"PATCH",
+            headers:supabaseHeaders("return=minimal"),
+            body:JSON.stringify(registro)
+        })
+
+        if(!resposta.ok){
+            console.error("Erro ao atualizar acesso por chave natural:", await resposta.text())
+        }
+
+        if(existentes.length > 1){
+            const idsDuplicados = existentes.slice(1).map(item => item.id).join(",")
+            await fetch(`${SUPABASE_REST_URL}/acessos?id=in.(${idsDuplicados})`, {
+                method:"PATCH",
+                headers:supabaseHeaders("return=minimal"),
+                body:JSON.stringify({
+                    status:"arquivado",
+                    atualizado_em:dataISOAgora()
+                })
+            })
+        }
+    }else{
+        const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?on_conflict=id`, {
+            method:"POST",
+            headers:supabaseHeaders("resolution=merge-duplicates,return=minimal"),
+            body:JSON.stringify([registro])
+        })
+
+        if(!resposta.ok){
+            console.error("Erro ao inserir acesso por chave natural:", await resposta.text())
+        }
+    }
+
+    return acesso
+}
+
 async function supabaseSalvarAcessos(){
     if(!acessos.length){ return; }
-    const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?on_conflict=id`, {
-        method:"POST",
-        headers:supabaseHeaders("resolution=merge-duplicates,return=minimal"),
-        body:JSON.stringify(acessos.map(acessoParaSupabase))
-    });
-    if(!resposta.ok){ console.error("Erro ao salvar acessos no Supabase:", await resposta.text()); }
+
+    for(const acesso of acessos){
+        await supabaseSalvarAcessoNatural(acesso)
+    }
 }
+
 
 
 async function supabaseAtualizarMovimento(acesso){
@@ -1149,27 +1206,41 @@ async function supabaseSalvarAutorizado(acesso, statusBase = "autorizado"){
         atualizado_em: dataISOAgora()
     };
 
-    const busca = `${SUPABASE_REST_URL}/autorizados?select=id&tecnico=eq.${encodeURIComponent(itemNovo.tecnico)}&site=eq.${encodeURIComponent(itemNovo.site)}&ticket=eq.${encodeURIComponent(itemNovo.ticket)}`;
-    const consulta = await fetch(busca, {headers:supabaseHeaders()});
-    if(!consulta.ok){ console.error("Erro ao consultar autorizado:", await consulta.text()); return; }
-    const existentes = await consulta.json();
+    const filtro = `tecnico=eq.${encodeURIComponent(itemNovo.tecnico)}&site=eq.${encodeURIComponent(itemNovo.site)}&ticket=eq.${encodeURIComponent(itemNovo.ticket)}`
+    const consulta = await fetch(`${SUPABASE_REST_URL}/autorizados?select=id&${filtro}&order=atualizado_em.desc`, {
+        headers:supabaseHeaders()
+    })
+
+    if(!consulta.ok){
+        console.error("Erro ao consultar autorizado:", await consulta.text())
+        return
+    }
+
+    const existentes = await consulta.json()
 
     if(existentes.length){
-        const resposta = await fetch(`${SUPABASE_REST_URL}/autorizados?id=eq.${existentes[0].id}`, {
+        const resposta = await fetch(`${SUPABASE_REST_URL}/autorizados?${filtro}`, {
             method:"PATCH",
             headers:supabaseHeaders("return=minimal"),
             body:JSON.stringify(itemNovo)
-        });
-        if(!resposta.ok){ console.error("Erro ao atualizar autorizado:", await resposta.text()); }
+        })
+
+        if(!resposta.ok){
+            console.error("Erro ao atualizar autorizado:", await resposta.text())
+        }
     }else{
         const resposta = await fetch(`${SUPABASE_REST_URL}/autorizados`, {
             method:"POST",
             headers:supabaseHeaders("return=minimal"),
             body:JSON.stringify(itemNovo)
-        });
-        if(!resposta.ok){ console.error("Erro ao inserir autorizado:", await resposta.text()); }
+        })
+
+        if(!resposta.ok){
+            console.error("Erro ao inserir autorizado:", await resposta.text())
+        }
     }
 }
+
 
 
 
@@ -1218,6 +1289,23 @@ function ajustarSite(site){
     }
 
     return site.replace(/[^A-Z0-9]/gi,"").toUpperCase()
+}
+
+
+function chaveNaturalAcesso(acesso){
+    return [
+        normalizarBaseAutorizado(acesso?.tecnico || ""),
+        normalizarBaseAutorizado(acesso?.site || ""),
+        String(acesso?.ticket || "").trim()
+    ].join("|")
+}
+
+function mesmoAcessoNatural(a,b){
+    return chaveNaturalAcesso(a) === chaveNaturalAcesso(b)
+}
+
+function filtroNaturalAcesso(acesso){
+    return `tecnico=eq.${encodeURIComponent(acesso.tecnico || "")}&site=eq.${encodeURIComponent(acesso.site || "")}&ticket=eq.${encodeURIComponent(acesso.ticket || "")}`
 }
 
 function salvar(){
@@ -1473,9 +1561,9 @@ async function adicionarCartao(){
         return
     }
 
-    const existe = acessos.some(item => item.ticket === ticket && item.site === site && item.tecnico === tecnico)
+    const existente = acessos.find(item => item.ticket === ticket && item.site === site && item.tecnico === tecnico)
 
-    if(existe && !confirm("Esse acesso já existe. Deseja adicionar mesmo assim?")){
+    if(existente && !confirm("Esse acesso já existe. Deseja atualizar e trazer para o topo?")){
         return
     }
 
@@ -1488,7 +1576,7 @@ async function adicionarCartao(){
     }
 
     const novoAcesso = {
-        id: Date.now(),
+        id: existente?.id || Date.now(),
         tecnico,
         site,
         ticket,
@@ -1508,12 +1596,13 @@ async function adicionarCartao(){
     }
     novoAcesso.status = "aguardando"
 
+    acessos = acessos.filter(item => !mesmoAcessoNatural(item, novoAcesso))
     acessos.unshift(novoAcesso)
 
+    await supabaseSalvarAcessoNatural(novoAcesso)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
     renderizar()
 
-    await supabaseSalvarAcessos()
     salvarNaBaseAutorizados(novoAcesso, "aguardando")
 
     limparFormulario()

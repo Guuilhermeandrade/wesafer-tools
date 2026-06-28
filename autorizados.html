@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=41">
+<link rel="stylesheet" href="styles.css?v=42">
 
 <style>
 .container{
@@ -817,41 +817,62 @@ function autorizadoParaSupabase(item){
 
 function deduplicarBaseAutorizados(){
     const mapa = new Map()
+
     baseAutorizados.forEach(item => {
         if(item && item.tecnico && item.site && item.ticket){
-            mapa.set(chaveBase(item), item)
+            const chave = chaveBase(item)
+            const atual = mapa.get(chave)
+
+            if(!atual || timestampItem(item) >= timestampItem(atual)){
+                mapa.set(chave, item)
+            }
         }
     })
+
     baseAutorizados = Array.from(mapa.values())
+        .sort((a,b) => timestampItem(b) - timestampItem(a))
+
     localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
 }
 
+
 async function supabaseSalvarAutorizadoItem(item){
     const registro = autorizadoParaSupabase(item)
-    const busca = `${SUPABASE_REST_URL}/autorizados?select=id&tecnico=eq.${encodeURIComponent(registro.tecnico)}&site=eq.${encodeURIComponent(registro.site)}&ticket=eq.${encodeURIComponent(registro.ticket)}`
-    const consulta = await fetch(busca, {headers:supabaseHeaders()})
+    const filtro = `tecnico=eq.${encodeURIComponent(registro.tecnico)}&site=eq.${encodeURIComponent(registro.site)}&ticket=eq.${encodeURIComponent(registro.ticket)}`
+    const consulta = await fetch(`${SUPABASE_REST_URL}/autorizados?select=id&${filtro}&order=atualizado_em.desc`, {
+        headers:supabaseHeaders()
+    })
+
     if(!consulta.ok){
         console.error("Erro ao consultar autorizado:", await consulta.text())
         return
     }
+
     const encontrados = await consulta.json()
 
     if(encontrados.length){
-        const resposta = await fetch(`${SUPABASE_REST_URL}/autorizados?id=eq.${encontrados[0].id}`, {
+        const resposta = await fetch(`${SUPABASE_REST_URL}/autorizados?${filtro}`, {
             method:"PATCH",
             headers:supabaseHeaders("return=minimal"),
             body:JSON.stringify(registro)
         })
-        if(!resposta.ok){ console.error("Erro ao atualizar autorizado:", await resposta.text()) }
+
+        if(!resposta.ok){
+            console.error("Erro ao atualizar autorizado:", await resposta.text())
+        }
     }else{
         const resposta = await fetch(`${SUPABASE_REST_URL}/autorizados`, {
             method:"POST",
             headers:supabaseHeaders("return=minimal"),
             body:JSON.stringify(registro)
         })
-        if(!resposta.ok){ console.error("Erro ao inserir autorizado:", await resposta.text()) }
+
+        if(!resposta.ok){
+            console.error("Erro ao inserir autorizado:", await resposta.text())
+        }
     }
 }
+
 
 async function supabaseSalvarBaseAutorizados(){
     deduplicarBaseAutorizados()
@@ -877,13 +898,63 @@ function acessoParaSupabase(acesso){
 }
 
 async function supabaseSalvarAcesso(acesso){
-    const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?on_conflict=id`, {
-        method:"POST",
-        headers:supabaseHeaders("resolution=merge-duplicates,return=minimal"),
-        body:JSON.stringify([acessoParaSupabase(acesso)])
-    });
-    if(!resposta.ok){ console.error("Erro ao salvar acesso:", await resposta.text()); }
+    if(!acesso || !acesso.tecnico || !acesso.site || !acesso.ticket){
+        return acesso
+    }
+
+    const filtro = filtroNaturalAcesso(acesso)
+    const consulta = await fetch(`${SUPABASE_REST_URL}/acessos?select=id,created_at&${filtro}&order=created_at.desc`, {
+        headers:supabaseHeaders()
+    })
+
+    if(!consulta.ok){
+        console.error("Erro ao consultar acesso:", await consulta.text())
+        return acesso
+    }
+
+    const existentes = await consulta.json()
+    const registro = acessoParaSupabase(acesso)
+
+    if(existentes.length){
+        registro.id = Number(existentes[0].id)
+        acesso.id = Number(existentes[0].id)
+
+        const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?id=eq.${existentes[0].id}`, {
+            method:"PATCH",
+            headers:supabaseHeaders("return=minimal"),
+            body:JSON.stringify(registro)
+        })
+
+        if(!resposta.ok){
+            console.error("Erro ao atualizar acesso:", await resposta.text())
+        }
+
+        if(existentes.length > 1){
+            const idsDuplicados = existentes.slice(1).map(item => item.id).join(",")
+            await fetch(`${SUPABASE_REST_URL}/acessos?id=in.(${idsDuplicados})`, {
+                method:"PATCH",
+                headers:supabaseHeaders("return=minimal"),
+                body:JSON.stringify({
+                    status:"arquivado",
+                    atualizado_em:dataISOAgora()
+                })
+            })
+        }
+    }else{
+        const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?on_conflict=id`, {
+            method:"POST",
+            headers:supabaseHeaders("resolution=merge-duplicates,return=minimal"),
+            body:JSON.stringify([registro])
+        })
+
+        if(!resposta.ok){
+            console.error("Erro ao salvar acesso:", await resposta.text())
+        }
+    }
+
+    return acesso
 }
+
 
 
 async function supabaseRemoverAutorizadoItem(item){
@@ -926,18 +997,56 @@ async function supabaseLimparAutorizados(){
 }
 
 async function supabaseAtualizarAcessoPorBase(item){
-    const url = `${SUPABASE_REST_URL}/acessos?tecnico=eq.${encodeURIComponent(item.tecnico)}&site=eq.${encodeURIComponent(item.site)}&ticket=eq.${encodeURIComponent(item.ticket)}`;
-    const resposta = await fetch(url, {
+    const filtro = filtroNaturalAcesso(item)
+    const agoraIso = dataISOAgora()
+
+    const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?${filtro}`, {
         method:"PATCH",
         headers:supabaseHeaders("return=minimal"),
         body:JSON.stringify({
             status:item.statusBase === "aguardando" ? "aguardando" : "liberado",
-            atualizado_em:dataISOAgora()
+            ordem_coluna:Date.now(),
+            data_ultimo_movimento:agoraIso,
+            atualizado_em:agoraIso
         })
     });
-    if(!resposta.ok){ console.error("Erro ao atualizar acesso pelo autorizado:", await resposta.text()); }
+
+    if(!resposta.ok){
+        console.error("Erro ao atualizar acesso pelo autorizado:", await resposta.text());
+    }
 }
 
+
+
+
+function chaveNaturalAcesso(acesso){
+    return [
+        normalizar(acesso?.tecnico || ""),
+        normalizar(acesso?.site || ""),
+        String(acesso?.ticket || "").trim()
+    ].join("|")
+}
+
+function mesmoAcessoNatural(a,b){
+    return chaveNaturalAcesso(a) === chaveNaturalAcesso(b)
+}
+
+function filtroNaturalAcesso(acesso){
+    return `tecnico=eq.${encodeURIComponent(acesso.tecnico || "")}&site=eq.${encodeURIComponent(acesso.site || "")}&ticket=eq.${encodeURIComponent(acesso.ticket || "")}`
+}
+
+function timestampItem(item){
+    const valores = [
+        item?.dataUltimoMovimento,
+        item?.atualizadoEm,
+        item?.atualizado_em,
+        item?.criadoEm,
+        item?.created_at
+    ].filter(Boolean)
+
+    const tempo = valores.length ? Date.parse(valores[0]) : 0
+    return Number.isNaN(tempo) ? 0 : tempo
+}
 
 function normalizar(texto){
     return (texto || "")
@@ -1170,21 +1279,19 @@ function gerarAcessoAutorizadoPelaChave(chave){
     }
 }
 
-function gerarAcessoAutorizado(item){
+async function gerarAcessoAutorizado(item){
     let acessos = JSON.parse(localStorage.getItem(STORAGE_ACESSOS) || "[]")
 
-    const existe = acessos.some(acesso =>
-        acesso.tecnico === item.tecnico &&
-        acesso.site === item.site &&
-        acesso.ticket === item.ticket
-    )
+    const existente = acessos.find(acesso => mesmoAcessoNatural(acesso, item))
 
-    if(existe && !confirm("Esse acesso já existe no Kanban. Deseja adicionar mesmo assim?")){
+    if(existente && !confirm("Esse acesso já existe no Kanban. Deseja atualizar e trazer para o topo?")){
         return
     }
 
-    acessos.unshift({
-        id: Date.now(),
+    const agoraIso = dataISOAgora()
+
+    const acessoNovo = {
+        id: existente?.id || Date.now(),
         tecnico: item.tecnico,
         site: item.site,
         ticket: item.ticket,
@@ -1192,50 +1299,60 @@ function gerarAcessoAutorizado(item){
         empresa: item.empresa || "",
         periodo: item.periodo,
         acao: item.acao || "",
+        portaMoura: item.portaMoura === true,
         portaOperadora: item.portaOperadora !== false,
         implantacao: item.implantacao !== false,
         operacao: item.operacao === true,
         status: item.statusBase === "aguardando" ? "aguardando" : "liberado",
         origem: "base_autorizados",
-        criadoEm: new Date().toLocaleString("pt-BR"),
-        atualizadoEm: new Date().toLocaleString("pt-BR")
-    })
+        ordemColuna: Date.now(),
+        dataUltimoMovimento: agoraIso,
+        criadoEm: existente?.criadoEm || agoraIso,
+        atualizadoEm: agoraIso
+    }
+
+    await supabaseSalvarAcesso(acessoNovo)
+
+    acessos = acessos.filter(acesso => !mesmoAcessoNatural(acesso, acessoNovo))
+    acessos.unshift(acessoNovo)
 
     localStorage.setItem(STORAGE_ACESSOS, JSON.stringify(acessos))
-    supabaseSalvarAcesso(acessos[0])
     mostrarToast("✅ Acesso gerado")
 }
 
 
-function alternarStatusBase(chave){
+
+async function alternarStatusBase(chave){
     const item = baseAutorizados.find(x => chaveBase(x) === chave)
     if(!item) return
 
+    const agoraIso = dataISOAgora()
+
     item.statusBase = item.statusBase === "aguardando" ? "autorizado" : "aguardando"
-    item.atualizadoEm = new Date().toLocaleString("pt-BR")
+    item.atualizadoEm = agoraIso
+    item.dataUltimoMovimento = agoraIso
 
     let acessos = JSON.parse(localStorage.getItem(STORAGE_ACESSOS) || "[]")
     acessos = acessos.map(acesso => {
-        if(
-            normalizar(acesso.tecnico) === normalizar(item.tecnico) &&
-            normalizar(acesso.site) === normalizar(item.site) &&
-            String(acesso.ticket) === String(item.ticket)
-        ){
+        if(mesmoAcessoNatural(acesso, item)){
             acesso.status = item.statusBase === "aguardando" ? "aguardando" : "liberado"
-            acesso.atualizadoEm = new Date().toLocaleString("pt-BR")
+            acesso.ordemColuna = Date.now()
+            acesso.dataUltimoMovimento = agoraIso
+            acesso.atualizadoEm = agoraIso
         }
 
         return acesso
     })
 
     localStorage.setItem(STORAGE_ACESSOS, JSON.stringify(acessos))
-    supabaseAtualizarAcessoPorBase(item)
-    supabaseSalvarBaseAutorizados()
+    await supabaseAtualizarAcessoPorBase(item)
+    await supabaseSalvarBaseAutorizados()
 
     atualizarResumo()
     pesquisarAutorizados()
     mostrarToast("✅ Status atualizado")
 }
+
 
 async function removerAutorizado(chave){
     const item = baseAutorizados.find(x => chaveBase(x) === chave)
