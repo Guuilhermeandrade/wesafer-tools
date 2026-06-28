@@ -13,7 +13,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=39">
+<link rel="stylesheet" href="styles.css?v=41">
 
 <style>
 /* ===== CONTROLE DE ACESSOS - KANBAN COM FORMATADOR EMBUTIDO ===== */
@@ -920,13 +920,62 @@ let modoCompacto = false
 
 const STORAGE_KEY = "acessosWesaferKanban"
 
+
 const AUTH_KEY = "wesaferAuth"
 
-async function verificarLogin(){
-    const sessao = JSON.parse(localStorage.getItem(AUTH_KEY) || "null")
+function obterSessao(){
+    return JSON.parse(localStorage.getItem(AUTH_KEY) || "null")
+}
+
+function salvarSessao(dados){
+    const sessaoAtual = obterSessao() || {}
+
+    localStorage.setItem(AUTH_KEY, JSON.stringify({
+        access_token: dados.access_token || sessaoAtual.access_token,
+        refresh_token: dados.refresh_token || sessaoAtual.refresh_token,
+        user: dados.user || sessaoAtual.user,
+        logado_em: sessaoAtual.logado_em || new Date().toISOString(),
+        renovado_em: new Date().toISOString()
+    }))
+}
+
+async function renovarSessao(){
+    const sessao = obterSessao()
+
+    if(!sessao || !sessao.refresh_token){
+        return false
+    }
+
+    try{
+        const resposta = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+            method:"POST",
+            headers:{
+                apikey: SUPABASE_ANON_KEY,
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                refresh_token:sessao.refresh_token
+            })
+        })
+
+        const dados = await resposta.json()
+
+        if(!resposta.ok || !dados.access_token){
+            return false
+        }
+
+        salvarSessao(dados)
+        return true
+    }catch(erro){
+        console.error("Erro ao renovar sessão:", erro)
+        return false
+    }
+}
+
+async function validarAccessToken(){
+    const sessao = obterSessao()
 
     if(!sessao || !sessao.access_token){
-        window.location.href = "login.html"
         return false
     }
 
@@ -938,24 +987,38 @@ async function verificarLogin(){
             }
         })
 
-        if(!resposta.ok){
-            localStorage.removeItem(AUTH_KEY)
-            window.location.href = "login.html"
-            return false
-        }
-
-        return true
+        return resposta.ok
     }catch(erro){
-        localStorage.removeItem(AUTH_KEY)
+        return false
+    }
+}
+
+async function verificarLogin(){
+    const sessao = obterSessao()
+
+    if(!sessao || !sessao.access_token){
         window.location.href = "login.html"
         return false
     }
+
+    if(await validarAccessToken()){
+        return true
+    }
+
+    if(await renovarSessao()){
+        return true
+    }
+
+    localStorage.removeItem(AUTH_KEY)
+    window.location.href = "login.html"
+    return false
 }
 
 function sairSistema(){
     localStorage.removeItem(AUTH_KEY)
     window.location.href = "login.html"
 }
+
 
 
 
