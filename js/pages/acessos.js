@@ -375,6 +375,615 @@ function ajustarSite(site){
 }
 
 
+
+function textoStatusRelatorio(status){
+    const mapa = {
+        aguardando:"AGUARDANDO LIBERAÇÃO",
+        liberado:"LIBERADO",
+        entrada:"ENTRADA",
+        saida:"SAÍDA",
+        arquivado:"ARQUIVADO"
+    }
+
+    return mapa[String(status || "").toLowerCase()] || String(status || "").toUpperCase()
+}
+
+function tipoAtividadeRelatorio(acesso){
+    if(acesso?.operacao === true){
+        return "OPERAÇÃO"
+    }
+
+    if(acesso?.implantacao === true){
+        return "IMPLANTAÇÃO"
+    }
+
+    const texto = `${acesso?.acao || ""}`.toUpperCase()
+
+    if(texto.includes("OPERA")){
+        return "OPERAÇÃO"
+    }
+
+    if(texto.includes("IMPLANTA")){
+        return "IMPLANTAÇÃO"
+    }
+
+    return "-"
+}
+
+function usuarioSessaoRelatorio(){
+    const sessao = obterSessao ? obterSessao() : null
+    return sessao?.user?.email || sessao?.user?.user_metadata?.name || "WESAFER TOOLS"
+}
+
+function dataLocalInicioFimHoje(){
+    const inicio = new Date()
+    inicio.setHours(0,0,0,0)
+
+    const fim = new Date()
+    fim.setHours(23,59,59,999)
+
+    return {
+        inicio,
+        fim,
+        inicioISO: inicio.toISOString(),
+        fimISO: fim.toISOString()
+    }
+}
+
+
+function escaparHtmlRelatorio(valor){
+    return String(valor ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;")
+}
+
+function statusClasseRelatorio(status){
+    const texto = textoStatusRelatorio(status)
+    if(texto === "AGUARDANDO LIBERAÇÃO"){ return "status-aguardando" }
+    if(texto === "LIBERADO"){ return "status-liberado" }
+    if(texto === "ENTRADA"){ return "status-entrada" }
+    if(texto === "SAÍDA"){ return "status-saida" }
+    return ""
+}
+
+function completarAcessoHistorico(acesso){
+    if(!acesso || !Array.isArray(acessos)){
+        return acesso
+    }
+
+    const encontrado = acessos.find(item =>
+        String(item.id) === String(acesso.id) ||
+        (
+            String(item.ticket || "") === String(acesso.ticket || "") &&
+            String(item.site || "") === String(acesso.site || "") &&
+            normalizarBaseAutorizado(item.tecnico || "") === normalizarBaseAutorizado(acesso.tecnico || "")
+        )
+    )
+
+    if(!encontrado){
+        return acesso
+    }
+
+    return {
+        ...encontrado,
+        ...acesso,
+        tecnico:acesso.tecnico || encontrado.tecnico || "",
+        site:acesso.site || encontrado.site || "",
+        ticket:acesso.ticket || encontrado.ticket || "",
+        empresa:acesso.empresa || encontrado.empresa || "",
+        solicitante:acesso.solicitante || encontrado.solicitante || "",
+        acao:acesso.acao || encontrado.acao || "",
+        portaMoura:acesso.portaMoura ?? encontrado.portaMoura,
+        portaOperadora:acesso.portaOperadora ?? encontrado.portaOperadora,
+        implantacao:acesso.implantacao ?? encontrado.implantacao,
+        operacao:acesso.operacao ?? encontrado.operacao
+    }
+}
+
+function gerarHtmlExcelRelatorio(registros, periodo, incluirResumo, incluirUsuario){
+    const contadores = {
+        "AGUARDANDO LIBERAÇÃO":0,
+        "LIBERADO":0,
+        "ENTRADA":0,
+        "SAÍDA":0
+    }
+
+    registros.forEach(item => {
+        const status = textoStatusRelatorio(item.status)
+        if(contadores[status] !== undefined){
+            contadores[status]++
+        }
+    })
+
+    const totalPorTicket = new Set(registros.map(item => `${item.ticket}|${item.site}|${item.tecnico}`)).size
+
+    const colunas = [
+        "DATA/HORA","TÉCNICO","SITE","TICKET","EMPRESA","SOLICITANTE",
+        "AÇÃO","TIPO DE ATIVIDADE","STATUS"
+    ]
+
+    if(incluirUsuario){
+        colunas.push("USUÁRIO")
+    }
+
+    colunas.push("ORIGEM")
+
+    const linhasTabela = registros.map(item => {
+        const status = textoStatusRelatorio(item.status)
+        const dados = [
+            dataHoraBrasil(item.data_hora),
+            item.tecnico || "",
+            item.site || "",
+            item.ticket || "",
+            item.empresa || "",
+            item.solicitante || "",
+            item.acao || "",
+            item.tipo_atividade || "",
+            status
+        ]
+
+        if(incluirUsuario){
+            dados.push(item.usuario || "")
+        }
+
+        dados.push(item.origem || "")
+
+        return `<tr>${dados.map((valor, indice) => {
+            const classe = indice === 8 ? statusClasseRelatorio(valor) : ""
+            return `<td class="${classe}">${escaparHtmlRelatorio(valor)}</td>`
+        }).join("")}</tr>`
+    }).join("")
+
+    const resumoHtml = incluirResumo ? `
+        <table class="resumo">
+            <tr>
+                <th>Total de movimentações</th>
+                <th>Acessos únicos</th>
+                <th>Aguardando liberação</th>
+                <th>Liberado</th>
+                <th>Entrada</th>
+                <th>Saída</th>
+            </tr>
+            <tr>
+                <td>${registros.length}</td>
+                <td>${totalPorTicket}</td>
+                <td>${contadores["AGUARDANDO LIBERAÇÃO"]}</td>
+                <td>${contadores["LIBERADO"]}</td>
+                <td>${contadores["ENTRADA"]}</td>
+                <td>${contadores["SAÍDA"]}</td>
+            </tr>
+        </table>
+    ` : ""
+
+    return `<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body{font-family:Arial,sans-serif;color:#0f172a;}
+.titulo{background:#0f172a;color:#fff;font-size:20px;font-weight:bold;text-align:center;padding:14px;}
+.subtitulo{background:#dbeafe;color:#1e3a8a;font-size:13px;font-weight:bold;text-align:center;padding:8px;}
+table{border-collapse:collapse;width:100%;}
+th{background:#2563eb;color:#fff;font-weight:bold;text-align:left;border:1px solid #93c5fd;padding:8px;font-size:12px;white-space:nowrap;}
+td{border:1px solid #cbd5e1;padding:7px;font-size:12px;vertical-align:top;mso-number-format:"\\@";}
+.resumo{margin:14px 0 18px 0;}
+.resumo th{background:#1e293b;text-align:center;}
+.resumo td{text-align:center;font-size:16px;font-weight:bold;background:#f8fafc;}
+.status-aguardando{background:#facc15;color:#422006;font-weight:bold;text-align:center;}
+.status-liberado{background:#22c55e;color:#052e16;font-weight:bold;text-align:center;}
+.status-entrada{background:#3b82f6;color:#fff;font-weight:bold;text-align:center;}
+.status-saida{background:#94a3b8;color:#0f172a;font-weight:bold;text-align:center;}
+.detalhes tr:nth-child(even) td{background:#f8fafc;}
+</style>
+</head>
+<body>
+<div class="titulo">RELATÓRIO DE ACESSOS - WESAFER TOOLS</div>
+<div class="subtitulo">PERÍODO: ${escaparHtmlRelatorio(periodo.inicioBr)} ATÉ ${escaparHtmlRelatorio(periodo.fimBr)}</div>
+${resumoHtml}
+<table class="detalhes">
+<colgroup>
+<col style="width:145px"><col style="width:260px"><col style="width:90px"><col style="width:90px">
+<col style="width:170px"><col style="width:260px"><col style="width:330px"><col style="width:160px">
+<col style="width:160px">${incluirUsuario ? '<col style="width:220px">' : ''}<col style="width:150px">
+</colgroup>
+<thead><tr>${colunas.map(coluna => `<th>${escaparHtmlRelatorio(coluna)}</th>`).join("")}</tr></thead>
+<tbody>${linhasTabela}</tbody>
+</table>
+</body>
+</html>`
+}
+
+function baixarRelatorioExcel(nome, html){
+    const blob = new Blob(["\ufeff" + html], {type:"application/vnd.ms-excel;charset=utf-8;"})
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = nome
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+}
+
+
+async function registrarHistoricoAcesso(acesso, status, origem = "acessos"){
+    acesso = completarAcessoHistorico(acesso)
+    if(!acesso || !acesso.tecnico || !acesso.site || !acesso.ticket){
+        return
+    }
+
+    const registro = {
+        data_hora:dataISOAgora(),
+        tecnico:acesso.tecnico || "",
+        site:acesso.site || "",
+        ticket:String(acesso.ticket || ""),
+        empresa:acesso.empresa || "",
+        solicitante:acesso.solicitante || "",
+        acao:acesso.acao || "",
+        tipo_atividade:tipoAtividadeRelatorio(acesso),
+        status:textoStatusRelatorio(status || acesso.status),
+        origem:origem,
+        usuario:usuarioSessaoRelatorio(),
+        acesso_id:acesso.id ? Number(acesso.id) : null
+    }
+
+    try{
+        const resposta = await fetch(`${SUPABASE_REST_URL}/historico_acessos`, {
+            method:"POST",
+            headers:supabaseHeaders("return=minimal"),
+            body:JSON.stringify(registro)
+        })
+
+        if(!resposta.ok){
+            console.error("Erro ao registrar histórico:", await resposta.text())
+        }
+    }catch(erro){
+        console.error("Erro ao registrar histórico:", erro)
+    }
+}
+
+async function limparHistoricoAntigo(){
+    try{
+        const limite = new Date()
+        limite.setDate(limite.getDate() - 30)
+
+        const resposta = await fetch(`${SUPABASE_REST_URL}/historico_acessos?data_hora=lt.${encodeURIComponent(limite.toISOString())}`, {
+            method:"DELETE",
+            headers:supabaseHeaders("return=minimal")
+        })
+
+        if(!resposta.ok){
+            console.error("Erro ao limpar histórico antigo:", await resposta.text())
+        }
+    }catch(erro){
+        console.error("Erro ao limpar histórico antigo:", erro)
+    }
+}
+
+async function listarHistoricoDoDia(){
+    const periodo = dataLocalInicioFimHoje()
+
+    const resposta = await fetch(
+        `${SUPABASE_REST_URL}/historico_acessos?select=*&data_hora=gte.${encodeURIComponent(periodo.inicioISO)}&data_hora=lte.${encodeURIComponent(periodo.fimISO)}&order=data_hora.asc`,
+        {headers:supabaseHeaders()}
+    )
+
+    if(!resposta.ok){
+        throw new Error(await resposta.text())
+    }
+
+    return await resposta.json()
+}
+
+function escaparCsv(valor){
+    const texto = String(valor ?? "").replace(/"/g,'""')
+    return `"${texto}"`
+}
+
+function dataHoraBrasil(valor){
+    if(!valor){
+        return "-"
+    }
+
+    const data = new Date(valor)
+
+    if(Number.isNaN(data.getTime())){
+        return valor
+    }
+
+    return data.toLocaleString("pt-BR")
+}
+
+function baixarArquivoTexto(nome, conteudo, tipo = "text/csv;charset=utf-8;"){
+    const blob = new Blob([conteudo], {type:tipo})
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+
+    link.href = url
+    link.download = nome
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+
+    URL.revokeObjectURL(url)
+}
+
+
+function dataInputHoje(){
+    const hoje = new Date()
+    const ano = hoje.getFullYear()
+    const mes = String(hoje.getMonth() + 1).padStart(2,"0")
+    const dia = String(hoje.getDate()).padStart(2,"0")
+    return `${ano}-${mes}-${dia}`
+}
+
+function abrirModalExportacao(){
+    const modal = document.getElementById("modalExportacao")
+    const inicio = document.getElementById("dataInicioExportacao")
+    const fim = document.getElementById("dataFimExportacao")
+
+    if(inicio && !inicio.value){
+        inicio.value = dataInputHoje()
+    }
+
+    if(fim && !fim.value){
+        fim.value = dataInputHoje()
+    }
+
+    if(modal){
+        modal.classList.add("aberto")
+    }
+}
+
+function fecharModalExportacao(){
+    const modal = document.getElementById("modalExportacao")
+    if(modal){
+        modal.classList.remove("aberto")
+    }
+}
+
+function periodoExportacaoSelecionado(){
+    const inicioValor = document.getElementById("dataInicioExportacao")?.value
+    const fimValor = document.getElementById("dataFimExportacao")?.value
+
+    if(!inicioValor || !fimValor){
+        throw new Error("Selecione a data inicial e a data final.")
+    }
+
+    const inicio = new Date(`${inicioValor}T00:00:00`)
+    const fim = new Date(`${fimValor}T23:59:59.999`)
+
+    if(Number.isNaN(inicio.getTime()) || Number.isNaN(fim.getTime())){
+        throw new Error("Período inválido.")
+    }
+
+    if(inicio > fim){
+        throw new Error("A data inicial não pode ser maior que a data final.")
+    }
+
+    const limite = new Date()
+    limite.setDate(limite.getDate() - 31)
+    limite.setHours(0,0,0,0)
+
+    if(inicio < limite){
+        throw new Error("O relatório só permite consultar o histórico dos últimos 30 dias.")
+    }
+
+    return {
+        inicio,
+        fim,
+        inicioISO:inicio.toISOString(),
+        fimISO:fim.toISOString(),
+        inicioBr:inicio.toLocaleDateString("pt-BR"),
+        fimBr:fim.toLocaleDateString("pt-BR"),
+        inicioArquivo:inicio.toLocaleDateString("pt-BR").replaceAll("/","-"),
+        fimArquivo:fim.toLocaleDateString("pt-BR").replaceAll("/","-")
+    }
+}
+
+async function listarHistoricoPorPeriodo(inicioISO,fimISO){
+    const resposta = await fetch(
+        `${SUPABASE_REST_URL}/historico_acessos?select=*&data_hora=gte.${encodeURIComponent(inicioISO)}&data_hora=lte.${encodeURIComponent(fimISO)}&order=data_hora.asc`,
+        {headers:supabaseHeaders()}
+    )
+
+    if(!resposta.ok){
+        throw new Error(await resposta.text())
+    }
+
+    return await resposta.json()
+}
+
+
+
+function chaveRelatorioAcesso(item){
+    return [
+        String(item.tecnico || "").trim().toUpperCase(),
+        String(item.site || "").trim().toUpperCase(),
+        String(item.ticket || "").trim().toUpperCase()
+    ].join("|")
+}
+
+function registrosUnicosPorAcesso(registros){
+    const mapa = new Map()
+
+    registros.forEach(item => {
+        const chave = chaveRelatorioAcesso(item)
+        const atual = mapa.get(chave)
+
+        const dataItem = new Date(item.data_hora || item.criado_em || 0).getTime()
+        const dataAtual = atual ? new Date(atual.data_hora || atual.criado_em || 0).getTime() : 0
+
+        if(!atual || dataItem >= dataAtual){
+            mapa.set(chave, item)
+        }
+    })
+
+    return Array.from(mapa.values()).sort((a,b) => {
+        return new Date(b.data_hora || 0).getTime() - new Date(a.data_hora || 0).getTime()
+    })
+}
+
+function gerarHtmlExcelRelatorioUnico(registros, periodo, incluirResumo, incluirUsuario){
+    const acessosUnicos = registrosUnicosPorAcesso(registros)
+
+    const contadores = {
+        "AGUARDANDO LIBERAÇÃO":0,
+        "LIBERADO":0,
+        "ENTRADA":0,
+        "SAÍDA":0
+    }
+
+    acessosUnicos.forEach(item => {
+        const status = textoStatusRelatorio(item.status)
+        if(contadores[status] !== undefined){
+            contadores[status]++
+        }
+    })
+
+    const colunas = [
+        "ÚLTIMA MOVIMENTAÇÃO",
+        "TÉCNICO",
+        "SITE",
+        "TICKET",
+        "EMPRESA",
+        "SOLICITANTE",
+        "AÇÃO",
+        "TIPO",
+        "STATUS ATUAL"
+    ]
+
+    if(incluirUsuario){
+        colunas.push("USUÁRIO")
+    }
+
+    const linhasTabela = acessosUnicos.map(item => {
+        const status = textoStatusRelatorio(item.status)
+        const dados = [
+            dataHoraBrasil(item.data_hora),
+            item.tecnico || "",
+            item.site || "",
+            item.ticket || "",
+            item.empresa || "",
+            item.solicitante || "",
+            item.acao || "",
+            item.tipo_atividade || "",
+            status
+        ]
+
+        if(incluirUsuario){
+            dados.push(item.usuario || "")
+        }
+
+        return `<tr>${dados.map((valor, indice) => {
+            const classe = indice === 8 ? statusClasseRelatorio(valor) : ""
+            return `<td class="${classe}">${escaparHtmlRelatorio(valor)}</td>`
+        }).join("")}</tr>`
+    }).join("")
+
+    const resumoHtml = incluirResumo ? `
+        <table class="resumo">
+            <tr>
+                <th>Total de acessos únicos</th>
+                <th>Aguardando liberação</th>
+                <th>Liberado</th>
+                <th>Entrada</th>
+                <th>Saída</th>
+            </tr>
+            <tr>
+                <td>${acessosUnicos.length}</td>
+                <td>${contadores["AGUARDANDO LIBERAÇÃO"]}</td>
+                <td>${contadores["LIBERADO"]}</td>
+                <td>${contadores["ENTRADA"]}</td>
+                <td>${contadores["SAÍDA"]}</td>
+            </tr>
+        </table>
+    ` : ""
+
+    return `<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body{font-family:Arial,sans-serif;color:#0f172a;background:#ffffff;}
+.titulo{background:#0f172a;color:#fff;font-size:22px;font-weight:bold;text-align:center;padding:16px;}
+.subtitulo{background:#dbeafe;color:#1e3a8a;font-size:14px;font-weight:bold;text-align:center;padding:10px;}
+.aviso{background:#f8fafc;color:#475569;font-size:12px;text-align:center;padding:8px;border-bottom:1px solid #cbd5e1;}
+table{border-collapse:collapse;width:100%;}
+th{background:#2563eb;color:#fff;font-weight:bold;text-align:center;border:1px solid #93c5fd;padding:9px;font-size:12px;white-space:nowrap;}
+td{border:1px solid #cbd5e1;padding:8px;font-size:12px;vertical-align:top;mso-number-format:"\\@";}
+.resumo{margin:16px 0 20px 0;}
+.resumo th{background:#1e293b;text-align:center;}
+.resumo td{text-align:center;font-size:18px;font-weight:bold;background:#f8fafc;}
+.status-aguardando{background:#facc15;color:#422006;font-weight:bold;text-align:center;}
+.status-liberado{background:#22c55e;color:#052e16;font-weight:bold;text-align:center;}
+.status-entrada{background:#3b82f6;color:#fff;font-weight:bold;text-align:center;}
+.status-saida{background:#94a3b8;color:#0f172a;font-weight:bold;text-align:center;}
+.detalhes tr:nth-child(even) td{background:#f8fafc;}
+.detalhes td:nth-child(2){font-weight:bold;}
+</style>
+</head>
+<body>
+<div class="titulo">RELATÓRIO DE ACESSOS - WESAFER TOOLS</div>
+<div class="subtitulo">PERÍODO: ${escaparHtmlRelatorio(periodo.inicioBr)} ATÉ ${escaparHtmlRelatorio(periodo.fimBr)}</div>
+<div class="aviso">Relatório principal com 1 linha por acesso. O status exibido é a última movimentação registrada dentro do período.</div>
+${resumoHtml}
+<table class="detalhes">
+<colgroup>
+<col style="width:155px"><col style="width:270px"><col style="width:90px"><col style="width:90px">
+<col style="width:170px"><col style="width:260px"><col style="width:360px"><col style="width:130px">
+<col style="width:165px">${incluirUsuario ? '<col style="width:220px">' : ''}
+</colgroup>
+<thead><tr>${colunas.map(coluna => `<th>${escaparHtmlRelatorio(coluna)}</th>`).join("")}</tr></thead>
+<tbody>${linhasTabela}</tbody>
+</table>
+</body>
+</html>`
+}
+
+
+
+async function exportarRelatorioPeriodo(){
+    try{
+        const periodo = periodoExportacaoSelecionado()
+        const incluirResumo = document.getElementById("incluirResumoExportacao")?.checked !== false
+        const incluirUsuario = document.getElementById("incluirUsuarioExportacao")?.checked !== false
+
+        mostrarToast("Gerando relatório de acessos únicos...", "info", "Exportação")
+
+        const registros = await listarHistoricoPorPeriodo(periodo.inicioISO, periodo.fimISO)
+
+        if(!registros.length){
+            mostrarToast("Nenhuma movimentação encontrada nesse período.", "aviso", "Relatório vazio")
+            return
+        }
+
+        const html = gerarHtmlExcelRelatorioUnico(registros, periodo, incluirResumo, incluirUsuario)
+        baixarRelatorioExcel(`Relatorio_Acessos_Unicos_${periodo.inicioArquivo}_a_${periodo.fimArquivo}.xls`, html)
+
+        fecharModalExportacao()
+        mostrarToast("Relatório exportado com sucesso.", "sucesso", "Exportado")
+    }catch(erro){
+        console.error("Erro ao exportar relatório:", erro)
+        mostrarToast(erro.message || "Não foi possível exportar o relatório.", "erro", "Erro")
+    }
+}
+
+
+
+function exportarRelatorioDiario(){
+    abrirModalExportacao()
+}
+
+document.addEventListener("keydown", evento => {
+    if(evento.key === "Escape"){
+        fecharModalExportacao()
+    }
+})
+
+
+
 function chaveNaturalAcesso(acesso){
     return [
         normalizarBaseAutorizado(acesso?.tecnico || ""),
@@ -683,6 +1292,7 @@ async function adicionarCartao(){
     acessos.unshift(novoAcesso)
 
     await supabaseSalvarAcessoNatural(novoAcesso)
+    await registrarHistoricoAcesso(novoAcesso, "aguardando", "novo_acesso")
     localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
     renderizar()
 
@@ -722,6 +1332,7 @@ async function alterarStatus(id,status){
 
     if(acessoMovido){
         await supabaseAtualizarMovimento(acessoMovido)
+        await registrarHistoricoAcesso(acessoMovido, status, "movimento_kanban")
     }
 }
 
@@ -1105,7 +1716,7 @@ function renderizar(){
             </div>
 
             <div class="card-botoes">
-                <button class="btn-amarelo" onclick="copiarTexto(${acesso.id}, 'liberacao')">LIB.</button>
+                <button class="btn-amarelo" onclick="copiarTexto(${acesso.id}, 'liberacao')">SOLICITAR ACESSO</button>
                 <button onclick="executarAcaoCard(${acesso.id}, 'entrada', 'entrada')">ENTRADA</button>
                 <button onclick="executarAcaoCard(${acesso.id}, 'saida', 'saida')">SAÍDA</button>
                 <button class="btn-cinza" onclick="remover(${acesso.id})">REMOVER</button>
@@ -1207,6 +1818,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     configurarMenuUsuario()
     atualizarDataPlantao()
+    limparHistoricoAntigo()
     carregar()
 })
 

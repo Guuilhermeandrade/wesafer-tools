@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="css/acessos.css?v=2.4.1">
+<link rel="stylesheet" href="css/acessos.css?v=2.5.4">
 </head>
 
 <body>
@@ -139,12 +139,21 @@
 <div class="busca-barra">
     <input id="busca" placeholder="🔎 Pesquisar por técnico, site, ticket, solicitante ou empresa..." oninput="renderizar()">
     <button onclick="abrirFormatador()">NOVO ACESSO</button>
+    <button class="btn-exportar-dia" onclick="abrirModalExportacao()">📊 EXPORTAR RELATÓRIO</button>
     <button class="btn-cinza" onclick="alternarCompacto()">MODO COMPACTO</button>
 
 </div>
 
 <details id="boxFormatador" class="formatador-acesso">
     <summary>⚡ FORMATADOR + CRIAÇÃO DE CARTÃO</summary>
+    <div class="topo-formatador-modal">
+        <div>
+            <h2>➕ NOVO ACESSO</h2>
+            <p>Preencha ou extraia os dados do chamado GLPI.</p>
+        </div>
+        <button type="button" class="btn-fechar-formatador" onclick="fecharFormatador()">✕</button>
+    </div>
+
 
     <div class="formatador-grid">
 
@@ -258,6 +267,52 @@
 </div>
 
 </main>
+
+<div id="modalExportacao" class="modal-exportacao">
+    <div class="modal-exportacao-card">
+        <div class="modal-exportacao-topo">
+            <div>
+                <h2>📊 EXPORTAR RELATÓRIO</h2>
+                <p>Selecione o período. O relatório exibirá apenas acessos únicos.</p>
+            </div>
+            <button class="btn-fechar-exportacao" onclick="fecharModalExportacao()">✕</button>
+        </div>
+
+        <div class="grid-exportacao">
+            <div class="campo">
+                <label for="dataInicioExportacao">DATA INICIAL</label>
+                <input id="dataInicioExportacao" type="date">
+            </div>
+
+            <div class="campo">
+                <label for="dataFimExportacao">DATA FINAL</label>
+                <input id="dataFimExportacao" type="date">
+            </div>
+        </div>
+
+        <div class="opcoes-exportacao">
+            <label>
+                <input id="incluirResumoExportacao" type="checkbox" checked>
+                Incluir resumo por status
+            </label>
+
+            <label>
+                <input id="incluirUsuarioExportacao" type="checkbox" checked>
+                Incluir usuário da movimentação
+            </label>
+        </div>
+
+        <div class="acoes-exportacao">
+            <button class="btn-cinza" onclick="fecharModalExportacao()">CANCELAR</button>
+            <button class="btn-exportar-dia" onclick="exportarRelatorioPeriodo()">EXPORTAR</button>
+        </div>
+
+        <p class="mini-info">
+            Para exportar somente hoje, use a mesma data nos dois campos. Cada acesso aparecerá apenas uma vez.
+        </p>
+    </div>
+</div>
+
 
 <footer class="footer">WeSafer Produtos Digitais Ltda.</footer>
 

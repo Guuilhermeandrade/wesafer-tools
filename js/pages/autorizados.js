@@ -137,6 +137,83 @@ function configurarMenuUsuario(){
 }
 
 
+
+function textoStatusRelatorio(status){
+    const mapa = {
+        aguardando:"AGUARDANDO LIBERAÇÃO",
+        liberado:"LIBERADO",
+        entrada:"ENTRADA",
+        saida:"SAÍDA",
+        arquivado:"ARQUIVADO"
+    }
+
+    return mapa[String(status || "").toLowerCase()] || String(status || "").toUpperCase()
+}
+
+function tipoAtividadeRelatorio(acesso){
+    if(acesso?.operacao === true){ return "OPERAÇÃO" }
+    if(acesso?.implantacao === true){ return "IMPLANTAÇÃO" }
+
+    const texto = `${acesso?.acao || ""}`.toUpperCase()
+    if(texto.includes("OPERA")){ return "OPERAÇÃO" }
+    if(texto.includes("IMPLANTA")){ return "IMPLANTAÇÃO" }
+
+    return "-"
+}
+
+function usuarioSessaoRelatorio(){
+    const sessao = obterSessao ? obterSessao() : null
+    return sessao?.user?.email || sessao?.user?.user_metadata?.name || "WESAFER TOOLS"
+}
+
+async function registrarHistoricoAcesso(acesso, status, origem = "autorizados"){
+    if(!acesso || !acesso.tecnico || !acesso.site || !acesso.ticket){ return }
+
+    const registro = {
+        data_hora:dataISOAgora(),
+        tecnico:acesso.tecnico || "",
+        site:acesso.site || "",
+        ticket:String(acesso.ticket || ""),
+        empresa:acesso.empresa || "",
+        solicitante:acesso.solicitante || "",
+        acao:acesso.acao || "",
+        tipo_atividade:tipoAtividadeRelatorio(acesso),
+        status:textoStatusRelatorio(status || acesso.status),
+        origem:origem,
+        usuario:usuarioSessaoRelatorio(),
+        acesso_id:acesso.id ? Number(acesso.id) : null
+    }
+
+    try{
+        const resposta = await fetch(`${SUPABASE_REST_URL}/historico_acessos`, {
+            method:"POST",
+            headers:supabaseHeaders("return=minimal"),
+            body:JSON.stringify(registro)
+        })
+
+        if(!resposta.ok){
+            console.error("Erro ao registrar histórico:", await resposta.text())
+        }
+    }catch(erro){
+        console.error("Erro ao registrar histórico:", erro)
+    }
+}
+
+async function limparHistoricoAntigo(){
+    try{
+        const limite = new Date()
+        limite.setDate(limite.getDate() - 30)
+
+        await fetch(`${SUPABASE_REST_URL}/historico_acessos?data_hora=lt.${encodeURIComponent(limite.toISOString())}`, {
+            method:"DELETE",
+            headers:supabaseHeaders("return=minimal")
+        })
+    }catch(erro){
+        console.error("Erro ao limpar histórico antigo:", erro)
+    }
+}
+
+
 const STORAGE_BASE = "baseAutorizadosWesafer"
 const STORAGE_ACESSOS = "acessosWesaferKanban"
 
@@ -732,6 +809,7 @@ async function gerarAcessoAutorizado(item){
     }
 
     await supabaseSalvarAcesso(acessoNovo)
+    await registrarHistoricoAcesso(acessoNovo, acessoNovo.status, "gerado_autorizados")
 
     acessos = acessos.filter(acesso => !mesmoAcessoNatural(acesso, acessoNovo))
     acessos.unshift(acessoNovo)
@@ -766,6 +844,10 @@ async function alternarStatusBase(chave){
 
     localStorage.setItem(STORAGE_ACESSOS, JSON.stringify(acessos))
     await supabaseAtualizarAcessoPorBase(item)
+    await registrarHistoricoAcesso({
+        ...item,
+        status:item.statusBase === "aguardando" ? "aguardando" : "liberado"
+    }, item.statusBase === "aguardando" ? "aguardando" : "liberado", "status_autorizados")
     await supabaseSalvarBaseAutorizados()
 
     atualizarResumo()
@@ -1089,6 +1171,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     configurarMenuUsuario()
     atualizarDataPlantao()
+    limparHistoricoAntigo()
     carregarTela()
 })
 

@@ -2310,3 +2310,20 @@ body{
 .mini-info{
     color:#94a3b8 !important;
 }
+
+
+/* ===== v2.5 - EXPORTAÇÃO DIÁRIA ===== */
+.btn-exportar-dia{
+    background:linear-gradient(135deg,#7c3aed,#0ea5e9)!important;
+    color:#fff!important;
+}
+
+.busca-barra{
+    grid-template-columns:1fr 128px 138px 132px !important;
+}
+
+@media(max-width:1000px){
+    .busca-barra{
+        grid-template-columns:1fr !important;
+    }
+}

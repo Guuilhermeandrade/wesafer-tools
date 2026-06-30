@@ -2501,3 +2501,301 @@ body{
 .mini-info{
     color:#94a3b8 !important;
 }
+
+
+/* ===== v2.5 - EXPORTAÇÃO DIÁRIA ===== */
+.btn-exportar-dia{
+    background:linear-gradient(135deg,#7c3aed,#0ea5e9)!important;
+    color:#fff!important;
+}
+
+.busca-barra{
+    grid-template-columns:1fr 128px 138px 132px !important;
+}
+
+@media(max-width:1000px){
+    .busca-barra{
+        grid-template-columns:1fr !important;
+    }
+}
+
+
+/* ===== v2.5.1 - MODAL EXPORTAÇÃO POR PERÍODO ===== */
+.modal-exportacao{
+    position:fixed;
+    inset:0;
+    z-index:9999998;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    background:rgba(2,6,23,.62);
+    backdrop-filter:blur(4px);
+}
+
+.modal-exportacao.aberto{
+    display:flex;
+}
+
+.modal-exportacao-card{
+    width:min(560px,calc(100vw - 32px));
+    background:
+        radial-gradient(circle at top left,rgba(37,99,235,.22),transparent 32%),
+        linear-gradient(180deg,#0f172a,#020617);
+    border:1px solid rgba(147,197,253,.28);
+    border-radius:24px;
+    padding:22px;
+    box-shadow:0 30px 90px rgba(0,0,0,.62);
+}
+
+.modal-exportacao-topo{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:18px;
+}
+
+.modal-exportacao-topo h2{
+    color:#fff;
+    font-size:20px;
+    font-weight:900;
+    margin:0 0 6px 0;
+}
+
+.modal-exportacao-topo p{
+    color:#94a3b8;
+    font-size:13px;
+    line-height:1.45;
+    margin:0;
+}
+
+.btn-fechar-exportacao{
+    width:36px;
+    height:36px;
+    min-height:36px!important;
+    border:none;
+    border-radius:11px;
+    background:rgba(148,163,184,.16)!important;
+    color:#e5e7eb;
+    font-size:16px;
+    font-weight:900;
+    cursor:pointer;
+    padding:0!important;
+}
+
+.btn-fechar-exportacao:hover{
+    background:rgba(239,68,68,.22)!important;
+    color:#fff;
+}
+
+.grid-exportacao{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-bottom:14px;
+}
+
+.grid-exportacao .campo label{
+    color:#bfdbfe;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.6px;
+    margin-bottom:7px;
+    display:block;
+}
+
+.grid-exportacao input{
+    width:100%;
+    min-height:44px;
+    border-radius:13px;
+    border:1px solid rgba(147,197,253,.22);
+    background:#020617;
+    color:#e5e7eb;
+    padding:0 12px;
+    font-size:13px;
+    outline:none;
+}
+
+.grid-exportacao input:focus{
+    border-color:#38bdf8;
+    box-shadow:0 0 0 3px rgba(56,189,248,.12);
+}
+
+.opcoes-exportacao{
+    display:grid;
+    gap:10px;
+    margin:14px 0 18px;
+    padding:13px;
+    border-radius:15px;
+    background:rgba(15,23,42,.62);
+    border:1px solid rgba(147,197,253,.14);
+}
+
+.opcoes-exportacao label{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    color:#dbeafe;
+    font-size:12px;
+    font-weight:800;
+    cursor:pointer;
+}
+
+.opcoes-exportacao input{
+    width:15px;
+    height:15px;
+    accent-color:#38bdf8;
+}
+
+.acoes-exportacao{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.acoes-exportacao button{
+    min-height:42px!important;
+    border-radius:12px!important;
+    font-size:12px!important;
+    font-weight:900!important;
+}
+
+@media(max-width:650px){
+    .grid-exportacao,
+    .acoes-exportacao{
+        grid-template-columns:1fr;
+    }
+}
+
+
+/* ===== v2.5.4 - PADRONIZAÇÃO DOS MODAIS ===== */
+
+/* Botão X padrão igual Exportar Relatório */
+.btn-fechar-anotacoes,
+.btn-fechar-formatador,
+.btn-fechar-exportacao{
+    width:36px !important;
+    height:36px !important;
+    min-width:36px !important;
+    min-height:36px !important;
+    padding:0 !important;
+    border:none !important;
+    border-radius:11px !important;
+    background:rgba(148,163,184,.16) !important;
+    color:#e5e7eb !important;
+    font-size:16px !important;
+    font-weight:900 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    cursor:pointer !important;
+    box-shadow:none !important;
+    transition:.18s ease !important;
+}
+
+.btn-fechar-anotacoes:hover,
+.btn-fechar-formatador:hover,
+.btn-fechar-exportacao:hover{
+    background:rgba(239,68,68,.22) !important;
+    color:#fff !important;
+    transform:scale(1.03);
+}
+
+/* Cabeçalhos padronizados */
+.topo-painel-anotacoes,
+.topo-formatador-modal,
+.modal-exportacao-topo{
+    display:flex !important;
+    align-items:flex-start !important;
+    justify-content:space-between !important;
+    gap:16px !important;
+    margin-bottom:18px !important;
+}
+
+.topo-painel-anotacoes h2,
+.topo-formatador-modal h2,
+.modal-exportacao-topo h2{
+    color:#fff !important;
+    font-size:20px !important;
+    font-weight:900 !important;
+    margin:0 0 6px 0 !important;
+    line-height:1.15 !important;
+}
+
+.topo-painel-anotacoes p,
+.topo-formatador-modal p,
+.modal-exportacao-topo p{
+    color:#94a3b8 !important;
+    font-size:13px !important;
+    line-height:1.45 !important;
+    margin:0 !important;
+}
+
+/* Novo Acesso com cabeçalho igual Exportação */
+#boxFormatador[open]{
+    border-radius:24px !important;
+    padding:22px !important;
+}
+
+#boxFormatador[open]::after{
+    display:none !important;
+    content:none !important;
+}
+
+.topo-formatador-modal{
+    grid-column:1 / -1;
+}
+
+.topo-formatador-modal h2{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+/* Anotações com visual mais próximo dos outros modais */
+.painel-anotacoes{
+    border-radius:0 !important;
+}
+
+.topo-painel-anotacoes{
+    padding-bottom:4px !important;
+}
+
+.topo-painel-anotacoes h2{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+/* Animação leve */
+.modal-exportacao.aberto .modal-exportacao-card,
+#boxFormatador[open],
+.painel-anotacoes.aberto{
+    animation:modalEntradaPadrao .18s ease-out;
+}
+
+@keyframes modalEntradaPadrao{
+    from{
+        opacity:.45;
+        transform:translateY(8px) scale(.985);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0) scale(1);
+    }
+}
+
+/* Correção específica: painel lateral não deve usar scale visual estranho */
+.painel-anotacoes.aberto{
+    animation:painelEntradaPadrao .22s ease-out;
+}
+
+@keyframes painelEntradaPadrao{
+    from{
+        opacity:.5;
+    }
+    to{
+        opacity:1;
+    }
+}
