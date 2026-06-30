@@ -2250,3 +2250,254 @@ body{
 .sidebar:hover .sidebar-logo img{
     max-width:122px !important;
 }
+
+
+
+/* ===== v2.4.1 - CARDS MODERNOS + MODAL PREMIUM + TOASTS ===== */
+
+/* Toasts profissionais */
+.toast-container{
+    position:fixed;
+    top:14px;
+    right:18px;
+    z-index:9999999;
+    display:grid;
+    gap:10px;
+    width:min(360px,calc(100vw - 32px));
+    pointer-events:none;
+}
+
+.toast-msg{
+    pointer-events:auto;
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    padding:13px 15px;
+    border-radius:14px;
+    color:#e5e7eb;
+    background:linear-gradient(180deg,#0f172a,#020617);
+    border:1px solid rgba(147,197,253,.22);
+    box-shadow:0 20px 45px rgba(0,0,0,.38);
+    font-size:12px;
+    font-weight:800;
+    line-height:1.35;
+    animation:toastEntrada .22s ease-out;
+}
+
+.toast-msg strong{
+    display:block;
+    color:#fff;
+    font-size:12px;
+    margin-bottom:2px;
+}
+
+.toast-msg span{
+    display:block;
+    color:#cbd5e1;
+    font-weight:700;
+}
+
+.toast-msg.sucesso{border-left:4px solid #22c55e;}
+.toast-msg.info{border-left:4px solid #38bdf8;}
+.toast-msg.aviso{border-left:4px solid #eab308;}
+.toast-msg.erro{border-left:4px solid #ef4444;}
+
+.toast-icone{
+    font-size:16px;
+    line-height:1;
+    margin-top:1px;
+}
+
+@keyframes toastEntrada{
+    from{opacity:0; transform:translateX(18px) translateY(-4px);}
+    to{opacity:1; transform:translateX(0) translateY(0);}
+}
+
+@keyframes toastSaida{
+    from{opacity:1; transform:translateX(0);}
+    to{opacity:0; transform:translateX(18px);}
+}
+
+/* Cards de acesso mais modernos */
+.card-acesso{
+    position:relative;
+    overflow:hidden;
+    background:
+        linear-gradient(180deg,rgba(39,39,42,.98),rgba(24,24,27,.98)) !important;
+    border:1px solid rgba(255,255,255,.09) !important;
+    box-shadow:0 10px 26px rgba(0,0,0,.26) !important;
+    transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease !important;
+}
+
+.card-acesso:hover{
+    transform:translateY(-1px);
+    border-color:rgba(56,189,248,.28) !important;
+    box-shadow:0 16px 32px rgba(0,0,0,.32) !important;
+}
+
+.card-acesso::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:0;
+    width:3px;
+    background:linear-gradient(180deg,#2563eb,#0ea5e9);
+    opacity:.55;
+}
+
+.card-acesso h3{
+    color:#f8fafc !important;
+    letter-spacing:-.1px;
+    text-transform:uppercase;
+}
+
+.card-meta{
+    color:#cbd5e1 !important;
+}
+
+.card-meta div{
+    display:flex;
+    align-items:flex-start;
+    gap:4px;
+}
+
+.card-meta strong{
+    color:#94a3b8;
+    font-weight:900;
+}
+
+.etiqueta{
+    border-radius:999px !important;
+    letter-spacing:.25px !important;
+    box-shadow:0 6px 14px rgba(0,0,0,.18);
+}
+
+.e-aguardando{background:linear-gradient(135deg,#eab308,#facc15)!important;color:#1f2937!important;}
+.e-liberado{background:linear-gradient(135deg,#22c55e,#4ade80)!important;color:#052e16!important;}
+.e-entrada{background:linear-gradient(135deg,#3b82f6,#38bdf8)!important;color:#fff!important;}
+.e-saida{background:linear-gradient(135deg,#94a3b8,#64748b)!important;color:#0f172a!important;}
+
+.card-botoes button,
+.card-botoes-autorizado button{
+    font-weight:900 !important;
+    letter-spacing:.1px !important;
+    box-shadow:none !important;
+    transition:transform .14s ease, filter .14s ease !important;
+}
+
+.card-botoes button:hover,
+.card-botoes-autorizado button:hover{
+    transform:translateY(-1px);
+    filter:brightness(1.06);
+}
+
+/* Cards de autorizados também mais limpos */
+.card-autorizado{
+    background:
+        linear-gradient(180deg,rgba(39,39,42,.98),rgba(24,24,27,.98)) !important;
+    border:1px solid rgba(255,255,255,.09) !important;
+    box-shadow:0 10px 26px rgba(0,0,0,.24) !important;
+    transition:.15s ease !important;
+}
+
+.card-autorizado:hover{
+    transform:translateY(-1px);
+    border-color:rgba(56,189,248,.24) !important;
+}
+
+.card-autorizado h3{
+    color:#f8fafc !important;
+    text-transform:uppercase;
+}
+
+/* Modal Novo Acesso premium */
+#boxFormatador[open]{
+    padding:22px !important;
+    border-radius:24px !important;
+    background:
+        radial-gradient(circle at top left,rgba(37,99,235,.23),transparent 32%),
+        radial-gradient(circle at bottom right,rgba(14,165,233,.12),transparent 28%),
+        linear-gradient(180deg,#0f172a,#020617) !important;
+    border:1px solid rgba(147,197,253,.30) !important;
+}
+
+#boxFormatador[open]::after{
+    content:"NOVO ACESSO";
+    top:18px !important;
+    right:24px !important;
+    color:#bfdbfe !important;
+    font-size:11px !important;
+    letter-spacing:1.4px !important;
+}
+
+#boxFormatador .campo label,
+#boxFormatador label{
+    color:#cbd5e1 !important;
+    font-size:10.5px !important;
+    letter-spacing:.55px !important;
+}
+
+#boxFormatador input,
+#boxFormatador textarea{
+    background:rgba(15,23,42,.86) !important;
+    border:1px solid rgba(148,163,184,.18) !important;
+    color:#e5e7eb !important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.03) !important;
+}
+
+#boxFormatador input:focus,
+#boxFormatador textarea:focus{
+    outline:none !important;
+    border-color:rgba(56,189,248,.45) !important;
+    box-shadow:0 0 0 3px rgba(14,165,233,.12) !important;
+}
+
+#boxFormatador #chamadoBruto{
+    background:#f8fafc !important;
+    color:#0f172a !important;
+    border-radius:18px !important;
+}
+
+/* Checkboxes estilo card selecionável */
+.grupo-revisao{
+    background:rgba(15,23,42,.62) !important;
+    border:1px solid rgba(147,197,253,.18) !important;
+}
+
+.opcao-check{
+    position:relative;
+    border:1px solid rgba(148,163,184,.18) !important;
+    background:rgba(15,23,42,.72) !important;
+}
+
+.opcao-check:has(input:checked){
+    border-color:rgba(56,189,248,.65) !important;
+    background:rgba(37,99,235,.22) !important;
+    color:#fff !important;
+}
+
+.opcao-check input{
+    width:14px !important;
+    height:14px !important;
+}
+
+/* Botões do modal mais premium */
+.acoes-formatador button{
+    border-radius:12px !important;
+    font-weight:900 !important;
+}
+
+.acoes-formatador .btn-copiar{
+    background:linear-gradient(135deg,#16a34a,#22c55e)!important;
+}
+
+.acoes-formatador .btn-limpar{
+    background:linear-gradient(135deg,#dc2626,#ef4444)!important;
+}
+
+/* Pequenos refinamentos */
+.resultado-info,
+.mini-info{
+    color:#94a3b8 !important;
+}

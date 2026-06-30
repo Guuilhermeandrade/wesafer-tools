@@ -467,7 +467,7 @@ function extrairChamado(){
     const texto = document.getElementById("chamadoBruto").value
 
     if(!texto.trim()){
-        alert("Cole o chamado bruto primeiro.")
+        mostrarToast("Cole o chamado bruto primeiro.", "aviso", "Atenção")
         return
     }
 
@@ -746,14 +746,14 @@ async function limparPlantao(){
     const arquivado = await supabaseArquivarTodosAcessos();
 
     if(!arquivado){
-        alert("Não consegui limpar o plantão. Verifique o Console.");
+        mostrarToast("Não consegui limpar o plantão. Verifique o Console.", "erro", "Erro");
         return;
     }
 
     acessos = [];
     localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos));
     renderizar();
-    mostrarToast("✅ Plantão limpo");
+    mostrarToast("Plantão limpo com sucesso.");
 }
 
 function alternarCompacto(){
@@ -832,32 +832,41 @@ AÇÃO: ${acesso.acao || ""}`
     mostrarToast("✅ Copiado")
 }
 
-function mostrarToast(mensagem){
-    const toastAntigo = document.getElementById("toastCopiado")
+function mostrarToast(mensagem, tipo = "sucesso", titulo = ""){
+    let container = document.getElementById("toastContainer")
 
-    if(toastAntigo){
-        toastAntigo.remove()
+    if(!container){
+        container = document.createElement("div")
+        container.id = "toastContainer"
+        container.className = "toast-container"
+        document.body.appendChild(container)
     }
 
-    const toast = document.createElement("div")
-    toast.id = "toastCopiado"
-    toast.innerHTML = mensagem
-    toast.style.position = "fixed"
-    toast.style.top = "20px"
-    toast.style.right = "20px"
-    toast.style.background = "#22c55e"
-    toast.style.color = "#fff"
-    toast.style.padding = "12px 18px"
-    toast.style.borderRadius = "10px"
-    toast.style.fontWeight = "800"
-    toast.style.zIndex = "99999"
-    toast.style.boxShadow = "0 12px 28px rgba(0,0,0,.28)"
+    const mapa = {
+        sucesso:["✅","Sucesso"],
+        info:["ℹ️","Informação"],
+        aviso:["⚠️","Atenção"],
+        erro:["❌","Erro"]
+    }
 
-    document.body.appendChild(toast)
+    const config = mapa[tipo] || mapa.sucesso
+    const toast = document.createElement("div")
+    toast.className = `toast-msg ${tipo}`
+
+    toast.innerHTML = `
+        <div class="toast-icone">${config[0]}</div>
+        <div>
+            <strong>${titulo || config[1]}</strong>
+            <span>${mensagem}</span>
+        </div>
+    `
+
+    container.appendChild(toast)
 
     setTimeout(() => {
-        toast.remove()
-    }, 1500)
+        toast.style.animation = "toastSaida .22s ease-in forwards"
+        setTimeout(() => toast.remove(), 230)
+    }, 2800)
 }
 
 
@@ -1096,7 +1105,7 @@ function renderizar(){
             </div>
 
             <div class="card-botoes">
-                <button class="btn-amarelo" onclick="copiarTexto(${acesso.id}, 'liberacao')">SOLICITAR LIBERAÇÃO</button>
+                <button class="btn-amarelo" onclick="copiarTexto(${acesso.id}, 'liberacao')">LIB.</button>
                 <button onclick="executarAcaoCard(${acesso.id}, 'entrada', 'entrada')">ENTRADA</button>
                 <button onclick="executarAcaoCard(${acesso.id}, 'saida', 'saida')">SAÍDA</button>
                 <button class="btn-cinza" onclick="remover(${acesso.id})">REMOVER</button>

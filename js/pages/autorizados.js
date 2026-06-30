@@ -497,26 +497,41 @@ function limparExpiradosAutomaticamente(){
     localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
 }
 
-function mostrarToast(mensagem){
-    const antigo = document.getElementById("toastCopiado")
-    if(antigo){ antigo.remove() }
+function mostrarToast(mensagem, tipo = "sucesso", titulo = ""){
+    let container = document.getElementById("toastContainer")
 
+    if(!container){
+        container = document.createElement("div")
+        container.id = "toastContainer"
+        container.className = "toast-container"
+        document.body.appendChild(container)
+    }
+
+    const mapa = {
+        sucesso:["✅","Sucesso"],
+        info:["ℹ️","Informação"],
+        aviso:["⚠️","Atenção"],
+        erro:["❌","Erro"]
+    }
+
+    const config = mapa[tipo] || mapa.sucesso
     const toast = document.createElement("div")
-    toast.id = "toastCopiado"
-    toast.innerHTML = mensagem
-    toast.style.position = "fixed"
-    toast.style.top = "20px"
-    toast.style.right = "20px"
-    toast.style.background = "#22c55e"
-    toast.style.color = "#fff"
-    toast.style.padding = "12px 18px"
-    toast.style.borderRadius = "10px"
-    toast.style.fontWeight = "800"
-    toast.style.zIndex = "99999"
-    toast.style.boxShadow = "0 12px 28px rgba(0,0,0,.28)"
-    document.body.appendChild(toast)
+    toast.className = `toast-msg ${tipo}`
 
-    setTimeout(() => toast.remove(), 1500)
+    toast.innerHTML = `
+        <div class="toast-icone">${config[0]}</div>
+        <div>
+            <strong>${titulo || config[1]}</strong>
+            <span>${mensagem}</span>
+        </div>
+    `
+
+    container.appendChild(toast)
+
+    setTimeout(() => {
+        toast.style.animation = "toastSaida .22s ease-in forwards"
+        setTimeout(() => toast.remove(), 230)
+    }, 2800)
 }
 
 function extrairLinha(linha){
@@ -573,7 +588,7 @@ function importarBase(){
     const texto = document.getElementById("listaBrutaAutorizados").value.trim()
 
     if(!texto){
-        alert("Cole a lista antes de salvar.")
+        mostrarToast("Cole a lista antes de salvar.", "aviso", "Atenção")
         return
     }
 
@@ -581,7 +596,7 @@ function importarBase(){
     const extraidos = linhas.map(extrairLinha).filter(Boolean)
 
     if(extraidos.length === 0){
-        alert("Nenhum registro válido encontrado. Confira o padrão da lista.")
+        mostrarToast("Nenhum registro válido encontrado. Confira o padrão da lista.", "aviso", "Atenção")
         return
     }
 
@@ -600,7 +615,7 @@ function importarBase(){
     document.getElementById("resultadoInfo").innerText = `Base salva com ${baseAutorizados.length} registro(s). Digite para pesquisar.`
     document.getElementById("previewTeams").style.display = "none"
 
-    mostrarToast("✅ Base salva")
+    mostrarToast("Base salva com sucesso.")
 }
 
 function limparBase(){
@@ -722,7 +737,7 @@ async function gerarAcessoAutorizado(item){
     acessos.unshift(acessoNovo)
 
     localStorage.setItem(STORAGE_ACESSOS, JSON.stringify(acessos))
-    mostrarToast("✅ Acesso gerado")
+    mostrarToast("Acesso gerado com sucesso.")
 }
 
 
@@ -755,7 +770,7 @@ async function alternarStatusBase(chave){
 
     atualizarResumo()
     pesquisarAutorizados()
-    mostrarToast("✅ Status atualizado")
+    mostrarToast("Status atualizado com sucesso.")
 }
 
 
@@ -770,7 +785,7 @@ async function removerAutorizado(chave){
     const removido = await supabaseRemoverAutorizadoItem(item)
 
     if(!removido){
-        alert("Não foi possível remover do Supabase. Abra o Console para ver o erro.")
+        mostrarToast("Não foi possível remover do Supabase. Abra o Console para ver o erro.", "erro", "Erro")
         return
     }
 
@@ -779,7 +794,7 @@ async function removerAutorizado(chave){
 
     atualizarResumo()
     pesquisarAutorizados()
-    mostrarToast("✅ Removido da base")
+    mostrarToast("Registro removido da base.")
 }
 
 
