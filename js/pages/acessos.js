@@ -1599,7 +1599,7 @@ Técnico: ${acesso.tecnico}
 Empresa: ${acesso.empresa || ""}
 Período: ${acesso.periodo || ""}
 Porta Moura (${portaMoura}) Operadora (${operadora})
-Implantação (${implantacao}) Operação (${operacao})`
+Implantação (${implantacao}) Operação (${operacao})${consultarPreAutorizado(acesso.tecnico).status === "pre_autorizado" ? "\n✅ *PRÉ-AUTORIZADO*" : ""}`
     }
 
     if(tipo === "entrada"){
@@ -1705,6 +1705,8 @@ Por favor, não esqueça de realizar o procedimento informado ao sair e aguardar
         texto = `Liberação de Acesso – Cadeado do Site
 
 Para que possamos realizar a liberação, é necessário preencher o formulário no link abaixo.
+
+⚠️ *Importante:* o período máximo permitido para solicitação de acesso é de *15 dias*.
 
 🔗 https://glpimecs.grupomoura.com/marketplace/formcreator/front/formdisplay.php?id=1`
     }
