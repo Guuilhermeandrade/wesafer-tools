@@ -2327,3 +2327,1964 @@ body{
         grid-template-columns:1fr !important;
     }
 }
+
+
+/* =========================================================
+   WESAFER TOOLS — MODERNIZAÇÃO 19
+   Página AUTORIZADOS padronizada com a Modernização 18
+   ========================================================= */
+
+/* ----- estrutura geral ----- */
+.conteudo-sistema{
+    padding-top:8px !important;
+    padding-bottom:8px !important;
+}
+.container{
+    max-width:none !important;
+    width:100% !important;
+    padding:10px !important;
+}
+.topo-sistema{
+    height:34px !important;
+    min-height:34px !important;
+    margin-bottom:6px !important;
+    align-items:center !important;
+}
+.topo-info{
+    display:flex !important;
+    align-items:center !important;
+    gap:7px !important;
+}
+.topo-info .badge{
+    height:25px !important;
+    min-height:25px !important;
+    margin:0 !important;
+    padding:0 10px !important;
+    border-radius:999px !important;
+    font-size:7px !important;
+    line-height:25px !important;
+    background:#10213b !important;
+    border:1px solid rgba(96,165,250,.22) !important;
+    color:#93c5fd !important;
+}
+.data-plantao{
+    height:25px !important;
+    min-height:25px !important;
+    padding:0 10px !important;
+    border-radius:999px !important;
+    font-size:7px !important;
+    display:flex !important;
+    align-items:center !important;
+}
+.topo-logo{
+    padding:0 !important;
+    min-width:70px !important;
+}
+.topo-logo img{
+    width:70px !important;
+}
+.btn-menu-usuario{
+    width:28px !important;
+    min-width:28px !important;
+    height:25px !important;
+    min-height:25px !important;
+    padding:0 !important;
+}
+
+/* ----- área principal ----- */
+.area{
+    padding:7px !important;
+}
+.area-autorizados{
+    display:grid !important;
+    gap:7px !important;
+}
+
+/* ----- importar base: discreto como ação secundária ----- */
+.importador-discreto{
+    background:#0b1425 !important;
+    border:1px solid rgba(148,163,184,.13) !important;
+    border-radius:10px !important;
+    overflow:hidden !important;
+    margin:0 !important;
+}
+.importador-discreto > summary{
+    min-height:32px !important;
+    display:flex !important;
+    align-items:center !important;
+    padding:0 11px !important;
+    color:#93c5fd !important;
+    font-size:8px !important;
+    font-weight:900 !important;
+    cursor:pointer !important;
+    background:#0d182a !important;
+}
+.importador-discreto[open] > summary{
+    border-bottom:1px solid rgba(148,163,184,.10) !important;
+}
+.importador-discreto .painel-autorizados{
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    padding:12px !important;
+    box-shadow:none !important;
+}
+.importador-discreto .painel-autorizados h2{
+    font-size:13px !important;
+    margin-bottom:5px !important;
+}
+.importador-discreto .painel-autorizados p{
+    font-size:9px !important;
+    line-height:1.45 !important;
+    color:#7f93ad !important;
+}
+#listaBrutaAutorizados{
+    min-height:110px !important;
+    max-height:180px !important;
+    margin-top:8px !important;
+    padding:11px !important;
+    border-radius:9px !important;
+    background:#081224 !important;
+    color:#e2e8f0 !important;
+    border:1px solid rgba(148,163,184,.13) !important;
+    box-shadow:none !important;
+    font-size:9px !important;
+}
+.importador-discreto .botoes{
+    gap:6px !important;
+    margin-top:8px !important;
+}
+.importador-discreto .botoes button{
+    width:auto !important;
+    min-width:92px !important;
+    height:29px !important;
+    min-height:29px !important;
+    padding:4px 11px !important;
+    border-radius:7px !important;
+    font-size:7px !important;
+    box-shadow:none !important;
+}
+.importador-discreto .botoes button:first-child{
+    background:rgba(37,99,235,.18) !important;
+    color:#7dd3fc !important;
+    border:1px solid rgba(56,189,248,.20) !important;
+}
+.importador-discreto .btn-limpar{
+    background:rgba(127,29,29,.18) !important;
+    color:#fca5a5 !important;
+    border:1px solid rgba(248,113,113,.18) !important;
+}
+
+/* ----- painel de pesquisa ----- */
+.painel-autorizados{
+    background:#0b1425 !important;
+    border:1px solid rgba(148,163,184,.13) !important;
+    border-radius:11px !important;
+    padding:9px !important;
+    box-shadow:none !important;
+}
+.painel-autorizados > h2{
+    color:#e2e8f0 !important;
+    font-size:10px !important;
+    letter-spacing:.35px !important;
+    margin:0 0 7px !important;
+}
+
+/* ----- KPIs como no painel de acessos ----- */
+.resumo-base{
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:6px !important;
+    margin-bottom:6px !important;
+}
+.mini-card{
+    position:relative !important;
+    overflow:hidden !important;
+    min-height:49px !important;
+    height:49px !important;
+    padding:6px 10px !important;
+    border-radius:9px !important;
+    background:#0f1a2d !important;
+    border:1px solid rgba(148,163,184,.14) !important;
+    box-shadow:none !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    justify-content:center !important;
+    color:#e2e8f0 !important;
+}
+.mini-card::after{
+    content:'' !important;
+    position:absolute !important;
+    left:0 !important;
+    top:0 !important;
+    bottom:0 !important;
+    width:3px !important;
+}
+.card-total-base::after{background:#38bdf8 !important}
+.card-aguardando-base::after{background:#facc15 !important}
+.card-expiram-hoje::after{background:#f87171 !important}
+.mini-card span{
+    font-size:6.5px !important;
+    font-weight:900 !important;
+    letter-spacing:.35px !important;
+    color:#94a3b8 !important;
+    margin-bottom:3px !important;
+}
+.mini-card strong{
+    font-size:19px !important;
+    line-height:19px !important;
+    color:#f8fafc !important;
+}
+.mini-card:hover{
+    background:#122039 !important;
+    border-color:rgba(96,165,250,.25) !important;
+    transform:none !important;
+}
+
+/* ----- busca compacta ----- */
+.busca-autorizados{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    gap:5px !important;
+    padding:5px !important;
+    margin:0 0 6px !important;
+    border-radius:9px !important;
+    background:#091326 !important;
+    border:1px solid rgba(148,163,184,.12) !important;
+}
+.busca-autorizados input{
+    height:31px !important;
+    min-height:31px !important;
+    padding:0 11px !important;
+    border-radius:7px !important;
+    font-size:8px !important;
+    background:#07101f !important;
+    color:#e2e8f0 !important;
+    border:1px solid rgba(148,163,184,.11) !important;
+    box-shadow:none !important;
+}
+.btn-buscar-autorizado{
+    width:auto !important;
+    min-width:82px !important;
+    height:31px !important;
+    min-height:31px !important;
+    padding:0 11px !important;
+    border-radius:7px !important;
+    font-size:7px !important;
+    background:#1473e6 !important;
+    box-shadow:none !important;
+}
+
+/* ----- feedback da pesquisa ----- */
+.bloco-pesquisa-resultados{
+    background:transparent !important;
+    border:0 !important;
+    padding:0 !important;
+}
+.resultado-info{
+    min-height:27px !important;
+    display:flex !important;
+    align-items:center !important;
+    padding:0 9px !important;
+    margin-bottom:6px !important;
+    border-radius:8px !important;
+    background:#091326 !important;
+    border:1px solid rgba(148,163,184,.10) !important;
+    color:#7f93ad !important;
+    font-size:8px !important;
+}
+
+/* ----- cards de autorizados ----- */
+.lista-autorizados{
+    display:grid !important;
+    grid-template-columns:repeat(auto-fill,minmax(260px,1fr)) !important;
+    gap:7px !important;
+}
+.card-autorizado{
+    position:relative !important;
+    overflow:hidden !important;
+    background:#0d182a !important;
+    border:1px solid rgba(148,163,184,.14) !important;
+    border-radius:10px !important;
+    padding:9px !important;
+    box-shadow:none !important;
+}
+.card-autorizado::before{
+    content:'' !important;
+    position:absolute !important;
+    left:0 !important;
+    top:0 !important;
+    bottom:0 !important;
+    width:3px !important;
+    background:#38bdf8 !important;
+}
+.card-autorizado h3{
+    color:#f8fafc !important;
+    font-size:11px !important;
+    line-height:1.2 !important;
+    margin:5px 0 6px !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+}
+.status-base{
+    display:inline-flex !important;
+    width:max-content !important;
+    padding:3px 7px !important;
+    border-radius:999px !important;
+    font-size:7px !important;
+    font-weight:900 !important;
+    margin:0 !important;
+}
+.card-autorizado .meta{
+    display:grid !important;
+    gap:3px !important;
+    margin:0 0 8px !important;
+    color:#94a3b8 !important;
+    font-size:8px !important;
+    line-height:1.3 !important;
+}
+.card-autorizado .meta strong{
+    color:#cbd5e1 !important;
+    font-size:7px !important;
+}
+.card-botoes-autorizado{
+    display:grid !important;
+    grid-template-columns:1fr 1fr 28px !important;
+    gap:5px !important;
+    margin-top:7px !important;
+}
+.card-botoes-autorizado button{
+    min-width:0 !important;
+    width:100% !important;
+    height:28px !important;
+    min-height:28px !important;
+    padding:4px 6px !important;
+    border-radius:7px !important;
+    font-size:7px !important;
+    box-shadow:none !important;
+}
+.card-botoes-autorizado button:first-child{
+    background:rgba(37,99,235,.18) !important;
+    color:#7dd3fc !important;
+    border:1px solid rgba(56,189,248,.20) !important;
+}
+.card-botoes-autorizado .btn-status-base{
+    background:rgba(22,163,74,.15) !important;
+    color:#86efac !important;
+    border:1px solid rgba(34,197,94,.18) !important;
+}
+.card-botoes-autorizado .btn-limpar{
+    font-size:0 !important;
+    background:#111c2e !important;
+    color:#94a3b8 !important;
+    border:1px solid rgba(148,163,184,.12) !important;
+}
+.card-botoes-autorizado .btn-limpar::after{
+    content:'×' !important;
+    font-size:16px !important;
+    line-height:1 !important;
+}
+.card-botoes-autorizado .btn-limpar:hover{
+    background:rgba(127,29,29,.28) !important;
+    color:#fecaca !important;
+    border-color:rgba(248,113,113,.28) !important;
+}
+
+/* ----- formulário Teams ----- */
+.bloco-teams-gerado{
+    margin-top:7px !important;
+    border:1px solid rgba(148,163,184,.12) !important;
+    border-radius:9px !important;
+    background:#091326 !important;
+    overflow:hidden !important;
+}
+.titulo-bloco-teams{
+    min-height:29px !important;
+    display:flex !important;
+    align-items:center !important;
+    padding:0 10px !important;
+    color:#93c5fd !important;
+    font-size:8px !important;
+    font-weight:900 !important;
+    background:#0d182a !important;
+    border-bottom:1px solid rgba(148,163,184,.09) !important;
+}
+.preview-teams{
+    padding:10px !important;
+    background:#07101f !important;
+    color:#cbd5e1 !important;
+    font-size:9px !important;
+    line-height:1.5 !important;
+    border:0 !important;
+}
+
+/* ----- footer ----- */
+.footer{
+    margin-top:5px !important;
+    font-size:8px !important;
+}
+
+/* ----- responsivo ----- */
+@media(max-width:900px){
+    .resumo-base{
+        grid-template-columns:1fr !important;
+    }
+    .lista-autorizados{
+        grid-template-columns:1fr !important;
+    }
+    .busca-autorizados{
+        grid-template-columns:1fr !important;
+    }
+    .btn-buscar-autorizado{
+        width:100% !important;
+    }
+}
+
+
+/* =========================================================
+   WESAFER TOOLS — MODERNIZAÇÃO 20
+   AUTORIZADOS: lateral compacta + Teams dark/legível
+   ========================================================= */
+
+/* ---------- LATERAL MAIS COMPACTA ---------- */
+.sidebar{
+    width:76px !important;
+    min-width:76px !important;
+    padding:12px 7px 10px !important;
+    align-items:center !important;
+}
+.sidebar-logo{
+    width:48px !important;
+    max-width:48px !important;
+    margin:4px auto 14px !important;
+}
+.sidebar-nav{
+    width:100% !important;
+    gap:7px !important;
+}
+.sidebar-nav a{
+    width:60px !important;
+    min-width:60px !important;
+    height:52px !important;
+    min-height:52px !important;
+    margin:0 auto !important;
+    padding:6px 3px !important;
+    border-radius:10px !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:4px !important;
+    font-size:6.5px !important;
+    line-height:1.05 !important;
+    text-align:center !important;
+    white-space:normal !important;
+}
+.sidebar-nav a span,
+.sidebar-nav a .nav-icon{
+    font-size:15px !important;
+    line-height:15px !important;
+}
+.sidebar-nav a.ativo,
+.sidebar-nav a.active{
+    background:#153568 !important;
+    border:1px solid rgba(96,165,250,.38) !important;
+    box-shadow:none !important;
+}
+.sidebar-rodape{
+    width:100% !important;
+    padding:0 2px 6px !important;
+    text-align:center !important;
+    font-size:5.5px !important;
+    line-height:1.35 !important;
+}
+.conteudo-sistema{
+    margin-left:76px !important;
+    width:calc(100% - 76px) !important;
+}
+
+/* ---------- BLOCO TEAMS MAIS LIMPO ---------- */
+.bloco-teams-gerado{
+    margin-top:6px !important;
+    border-radius:10px !important;
+    background:#091326 !important;
+    border:1px solid rgba(148,163,184,.12) !important;
+    overflow:hidden !important;
+}
+.titulo-bloco-teams{
+    height:30px !important;
+    min-height:30px !important;
+    padding:0 10px !important;
+    background:#0d182a !important;
+    color:#93c5fd !important;
+    font-size:7px !important;
+    border-bottom:1px solid rgba(148,163,184,.09) !important;
+}
+.preview-teams{
+    max-height:calc(100vh - 280px) !important;
+    overflow:auto !important;
+    padding:9px !important;
+    background:#07101f !important;
+    color:#dbe7f5 !important;
+    font-size:8px !important;
+    line-height:1.35 !important;
+    scrollbar-width:thin !important;
+}
+
+/* Botão copiar deixa de dominar a tela */
+.preview-teams button,
+#previewTeams button,
+.btn-copiar-teams{
+    width:auto !important;
+    min-width:118px !important;
+    height:31px !important;
+    min-height:31px !important;
+    padding:0 12px !important;
+    margin:0 0 8px !important;
+    border-radius:7px !important;
+    background:rgba(22,163,74,.18) !important;
+    border:1px solid rgba(34,197,94,.22) !important;
+    color:#86efac !important;
+    box-shadow:none !important;
+    font-size:7px !important;
+    font-weight:900 !important;
+}
+
+/* Textos internos */
+.preview-teams h1,
+.preview-teams h2,
+.preview-teams h3,
+.preview-teams h4,
+.preview-teams strong{
+    color:#f1f5f9 !important;
+}
+.preview-teams h1,
+.preview-teams h2{
+    font-size:11px !important;
+    margin:7px 0 !important;
+}
+.preview-teams p{
+    color:#cbd5e1 !important;
+    margin:5px 0 !important;
+}
+
+/* ---------- TABELA TEAMS TOTALMENTE DARK ---------- */
+.preview-teams table,
+#previewTeams table{
+    width:100% !important;
+    border-collapse:separate !important;
+    border-spacing:0 !important;
+    table-layout:fixed !important;
+    background:#0b1425 !important;
+    border:1px solid rgba(148,163,184,.14) !important;
+    border-radius:9px !important;
+    overflow:hidden !important;
+    color:#dbe7f5 !important;
+    font-size:7.5px !important;
+}
+.preview-teams thead,
+#previewTeams thead{
+    background:#10264a !important;
+}
+.preview-teams th,
+#previewTeams th{
+    height:29px !important;
+    padding:5px 8px !important;
+    background:#12346a !important;
+    color:#eaf3ff !important;
+    border:0 !important;
+    border-right:1px solid rgba(148,163,184,.14) !important;
+    border-bottom:1px solid rgba(96,165,250,.22) !important;
+    font-size:7px !important;
+    font-weight:900 !important;
+    text-align:left !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+}
+.preview-teams td,
+#previewTeams td{
+    height:27px !important;
+    padding:5px 8px !important;
+    background:#0c1729 !important;
+    color:#cbd5e1 !important;
+    border:0 !important;
+    border-right:1px solid rgba(148,163,184,.08) !important;
+    border-bottom:1px solid rgba(148,163,184,.08) !important;
+    vertical-align:middle !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+}
+.preview-teams tbody tr:nth-child(even) td,
+#previewTeams tbody tr:nth-child(even) td{
+    background:#0f1b2f !important;
+}
+.preview-teams tbody tr:hover td,
+#previewTeams tbody tr:hover td{
+    background:#13233c !important;
+    color:#f8fafc !important;
+}
+.preview-teams th:last-child,
+.preview-teams td:last-child,
+#previewTeams th:last-child,
+#previewTeams td:last-child{
+    border-right:0 !important;
+}
+
+/* largura mais útil das colunas mais comuns */
+.preview-teams th:first-child,
+.preview-teams td:first-child,
+#previewTeams th:first-child,
+#previewTeams td:first-child{
+    width:42% !important;
+}
+.preview-teams th:nth-child(2),
+.preview-teams td:nth-child(2),
+#previewTeams th:nth-child(2),
+#previewTeams td:nth-child(2){
+    width:15% !important;
+}
+.preview-teams th:nth-child(3),
+.preview-teams td:nth-child(3),
+#previewTeams th:nth-child(3),
+#previewTeams td:nth-child(3){
+    width:19% !important;
+}
+.preview-teams th:nth-child(4),
+.preview-teams td:nth-child(4),
+#previewTeams th:nth-child(4),
+#previewTeams td:nth-child(4){
+    width:24% !important;
+}
+
+/* scrollbar discreta */
+.preview-teams::-webkit-scrollbar{
+    width:7px !important;
+    height:7px !important;
+}
+.preview-teams::-webkit-scrollbar-track{
+    background:#07101f !important;
+}
+.preview-teams::-webkit-scrollbar-thumb{
+    background:#334155 !important;
+    border-radius:999px !important;
+}
+
+/* Ajustes para telas menores */
+@media(max-width:900px){
+    .sidebar{
+        width:64px !important;
+        min-width:64px !important;
+    }
+    .conteudo-sistema{
+        margin-left:64px !important;
+        width:calc(100% - 64px) !important;
+    }
+    .sidebar-nav a{
+        width:52px !important;
+        min-width:52px !important;
+    }
+    .preview-teams{
+        overflow:auto !important;
+    }
+    .preview-teams table,
+    #previewTeams table{
+        min-width:680px !important;
+    }
+}
+
+
+/* =========================================================
+   WESAFER TOOLS — MODERNIZAÇÃO 21
+   Lateral estável + X nas planilhas + botões padronizados
+   ========================================================= */
+
+/* ---------- LATERAL CORRIGIDA PELAS CLASSES REAIS ---------- */
+:root{
+    --sidebar-fechada:72px !important;
+    --sidebar-aberta:72px !important;
+}
+
+.sidebar,
+.sidebar:hover{
+    width:72px !important;
+    min-width:72px !important;
+    padding:12px 6px 10px !important;
+    overflow:hidden !important;
+    box-shadow:none !important;
+}
+
+.conteudo-sistema{
+    margin-left:72px !important;
+    width:calc(100% - 72px) !important;
+}
+
+.sidebar-logo{
+    width:100% !important;
+    height:58px !important;
+    min-height:58px !important;
+    margin:2px 0 10px !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:center !important;
+    overflow:visible !important;
+}
+
+.sidebar-logo img,
+.sidebar:hover .sidebar-logo img{
+    width:42px !important;
+    min-width:42px !important;
+    max-width:42px !important;
+    height:auto !important;
+    object-fit:contain !important;
+    opacity:.78 !important;
+}
+
+.sidebar-menu{
+    width:100% !important;
+    display:grid !important;
+    gap:6px !important;
+    margin:0 !important;
+}
+
+.sidebar-menu a,
+.sidebar:hover .sidebar-menu a{
+    width:60px !important;
+    min-width:60px !important;
+    min-height:50px !important;
+    height:50px !important;
+    margin:0 auto !important;
+    padding:5px 3px !important;
+    display:flex !important;
+    flex-direction:column !important;
+    justify-content:center !important;
+    align-items:center !important;
+    gap:3px !important;
+    border-radius:10px !important;
+    white-space:normal !important;
+    overflow:hidden !important;
+    text-align:center !important;
+    box-shadow:none !important;
+}
+
+.sidebar-menu a .menu-icon{
+    width:auto !important;
+    min-width:0 !important;
+    font-size:14px !important;
+    line-height:14px !important;
+}
+
+.sidebar-menu a .menu-text,
+.sidebar:hover .sidebar-menu a .menu-text{
+    opacity:1 !important;
+    transform:none !important;
+    display:block !important;
+    max-width:54px !important;
+    font-size:5.5px !important;
+    line-height:1.05 !important;
+    font-weight:800 !important;
+    letter-spacing:.1px !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+}
+
+.sidebar-menu a.ativo{
+    background:#153568 !important;
+    border:1px solid rgba(96,165,250,.34) !important;
+}
+
+.sidebar-menu a.ativo::before,
+.sidebar:hover .sidebar-menu a.ativo::before,
+.sidebar::after,
+.sidebar:hover::after{
+    display:none !important;
+}
+
+/* ---------- BOTÕES: MESMA LINGUAGEM VISUAL ---------- */
+.painel-autorizados button:not(.mini-card),
+.importador-discreto button,
+.preview-teams button,
+.card-botoes-autorizado button{
+    height:29px !important;
+    min-height:29px !important;
+    padding:0 10px !important;
+    border-radius:7px !important;
+    font-size:7px !important;
+    font-weight:900 !important;
+    line-height:1 !important;
+    box-shadow:none !important;
+    transform:none !important;
+}
+
+.painel-autorizados button:not(.mini-card):hover,
+.importador-discreto button:hover,
+.preview-teams button:hover,
+.card-botoes-autorizado button:hover{
+    transform:none !important;
+    filter:brightness(1.08) !important;
+}
+
+.btn-buscar-autorizado{
+    min-width:76px !important;
+    background:#1473e6 !important;
+    color:#fff !important;
+    border:1px solid rgba(96,165,250,.20) !important;
+}
+
+.importador-discreto .botoes button:first-child,
+.card-botoes-autorizado button:first-child{
+    background:rgba(37,99,235,.18) !important;
+    color:#7dd3fc !important;
+    border:1px solid rgba(56,189,248,.20) !important;
+}
+
+.importador-discreto .btn-limpar,
+.card-botoes-autorizado .btn-limpar{
+    background:#111c2e !important;
+    color:#94a3b8 !important;
+    border:1px solid rgba(148,163,184,.12) !important;
+}
+
+/* ---------- AÇÕES DO PREVIEW/PLANILHA ---------- */
+.acoes-preview-teams{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:6px !important;
+    margin:0 0 8px !important;
+}
+
+.acoes-preview-teams .btn-copiar-preview{
+    width:auto !important;
+    min-width:112px !important;
+    margin:0 !important;
+    background:rgba(22,163,74,.16) !important;
+    color:#86efac !important;
+    border:1px solid rgba(34,197,94,.20) !important;
+}
+
+.acoes-preview-teams .btn-fechar-preview-teams{
+    width:29px !important;
+    min-width:29px !important;
+    padding:0 !important;
+    margin:0 !important;
+    background:#111c2e !important;
+    color:#94a3b8 !important;
+    border:1px solid rgba(148,163,184,.12) !important;
+    font-size:16px !important;
+    line-height:1 !important;
+}
+
+.acoes-preview-teams .btn-fechar-preview-teams:hover{
+    background:rgba(127,29,29,.28) !important;
+    color:#fecaca !important;
+    border-color:rgba(248,113,113,.28) !important;
+}
+
+/* Mantém os cards KPI como cards, não como botões comuns */
+.mini-card{
+    cursor:pointer !important;
+}
+
+/* mobile */
+@media(max-width:768px){
+    .sidebar,
+    .sidebar:hover{
+        width:100% !important;
+        min-width:100% !important;
+        height:auto !important;
+        position:relative !important;
+        padding:8px !important;
+    }
+
+    .sidebar-logo{
+        display:none !important;
+    }
+
+    .sidebar-menu{
+        grid-template-columns:repeat(2,1fr) !important;
+    }
+
+    .sidebar-menu a,
+    .sidebar:hover .sidebar-menu a{
+        width:100% !important;
+        min-width:0 !important;
+        height:40px !important;
+        min-height:40px !important;
+        flex-direction:row !important;
+    }
+
+    .conteudo-sistema{
+        margin-left:0 !important;
+        width:100% !important;
+    }
+}
+
+
+/* Sidebar: dimensões e comportamento definidos exclusivamente em styles.css (V3). */
+body .sidebar,
+body .sidebar:hover{
+    width:var(--ws-sidebar-fechada) !important;
+}
+body .sidebar:hover{
+    width:var(--ws-sidebar-aberta) !important;
+}
+
+
+/* =========================================================
+   SIDEBAR — PARÂMETROS COPIADOS DO ZIP DE REFERÊNCIA
+   Aplicado igual em ACESSOS e AUTORIZADOS.
+   Mantém as imagens atuais do projeto:
+   - fechada: logo-coruja
+   - aberta: logo-completa
+   ========================================================= */
+
+.sidebar{
+    width:58px !important;
+    min-width:58px !important;
+    max-width:58px !important;
+    height:100vh !important;
+    padding:0 !important;
+    overflow:visible !important;
+    background:#0f172a !important;
+    transition:width .22s ease, min-width .22s ease, max-width .22s ease !important;
+}
+
+.conteudo-sistema,
+.sidebar:hover ~ .conteudo-sistema{
+    margin-left:58px !important;
+    width:calc(100vw - 58px) !important;
+}
+
+/* largura final da referência */
+.sidebar:hover{
+    width:245px !important;
+    min-width:245px !important;
+    max-width:245px !important;
+    z-index:2000 !important;
+    background:#0f172a !important;
+    box-shadow:16px 0 38px rgba(0,0,0,.22) !important;
+}
+
+/* ---------------- LOGO FECHADA ---------------- */
+.sidebar-logo{
+    width:100% !important;
+    height:62px !important;
+    min-height:62px !important;
+    margin:0 0 14px !important;
+    padding:12px 8px !important;
+    box-sizing:border-box !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    overflow:hidden !important;
+}
+
+.sidebar-logo .logo-coruja{
+    display:block !important;
+    width:34px !important;
+    min-width:34px !important;
+    max-width:34px !important;
+    height:auto !important;
+    opacity:.55 !important;
+    object-fit:contain !important;
+}
+
+.sidebar-logo .logo-completa{
+    display:none !important;
+}
+
+/* ---------------- LOGO ABERTA ---------------- */
+.sidebar:hover .sidebar-logo{
+    height:108px !important;
+    min-height:108px !important;
+    margin-bottom:18px !important;
+    padding:30px 26px 14px 26px !important;
+    justify-content:flex-start !important;
+}
+
+.sidebar:hover .sidebar-logo .logo-coruja{
+    display:none !important;
+}
+
+.sidebar:hover .sidebar-logo .logo-completa{
+    display:block !important;
+    width:122px !important;
+    min-width:122px !important;
+    max-width:122px !important;
+    max-height:62px !important;
+    height:auto !important;
+    opacity:.76 !important;
+    object-fit:contain !important;
+}
+
+/* ---------------- MENU FECHADO ---------------- */
+.sidebar-menu{
+    width:100% !important;
+    padding:0 8px !important;
+    margin:0 !important;
+    gap:12px !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    box-sizing:border-box !important;
+}
+
+.sidebar-menu a{
+    width:42px !important;
+    min-width:42px !important;
+    max-width:42px !important;
+    height:42px !important;
+    min-height:42px !important;
+    max-height:42px !important;
+    padding:0 !important;
+    margin:0 auto !important;
+    border-radius:13px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:0 !important;
+    overflow:hidden !important;
+    box-sizing:border-box !important;
+    transition:.22s ease !important;
+}
+
+.sidebar-menu .menu-icon{
+    width:22px !important;
+    min-width:22px !important;
+    max-width:22px !important;
+    font-size:17px !important;
+    line-height:1 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    margin:0 !important;
+}
+
+.sidebar-menu .menu-text{
+    display:inline-block !important;
+    opacity:0 !important;
+    width:0 !important;
+    min-width:0 !important;
+    max-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:hidden !important;
+    white-space:nowrap !important;
+    font-size:13px !important;
+    font-weight:900 !important;
+}
+
+/* ---------------- MENU ABERTO ---------------- */
+.sidebar:hover .sidebar-menu{
+    padding:0 18px !important;
+    gap:18px !important;
+    align-items:stretch !important;
+}
+
+.sidebar:hover .sidebar-menu a{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    height:50px !important;
+    min-height:50px !important;
+    max-height:50px !important;
+    padding:0 18px !important;
+    margin:0 !important;
+    border-radius:15px !important;
+    justify-content:flex-start !important;
+    gap:14px !important;
+    overflow:visible !important;
+    box-sizing:border-box !important;
+}
+
+.sidebar:hover .sidebar-menu .menu-icon{
+    width:22px !important;
+    min-width:22px !important;
+    max-width:22px !important;
+    font-size:15.5px !important;
+}
+
+.sidebar:hover .sidebar-menu .menu-text{
+    display:inline-flex !important;
+    opacity:1 !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    overflow:visible !important;
+    white-space:nowrap !important;
+    flex:1 !important;
+    font-size:13px !important;
+    font-weight:900 !important;
+    letter-spacing:.15px !important;
+    color:#f8fafc !important;
+    line-height:1 !important;
+}
+
+/* ativo/hover iguais nas duas páginas */
+.sidebar-menu a.ativo,
+.sidebar:hover .sidebar-menu a.ativo{
+    background:rgba(37,99,235,.24) !important;
+    border:1px solid rgba(147,197,253,.30) !important;
+    box-shadow:none !important;
+}
+
+.sidebar:hover .sidebar-menu a:hover{
+    background:rgba(37,99,235,.15) !important;
+    border:1px solid rgba(147,197,253,.18) !important;
+}
+
+.sidebar-menu a::before,
+.sidebar-menu a.ativo::before,
+.sidebar:hover .sidebar-menu a::before,
+.sidebar:hover .sidebar-menu a.ativo::before{
+    display:none !important;
+    opacity:0 !important;
+    content:none !important;
+}
+
+/* rodapé: igual referência, só aparece aberta */
+.sidebar::after{
+    content:"" !important;
+    display:none !important;
+}
+
+.sidebar:hover::after{
+    content:"WESAFER TOOLS\A VERSÃO 2.4" !important;
+    display:block !important;
+    white-space:pre !important;
+    position:absolute !important;
+    left:18px !important;
+    right:18px !important;
+    bottom:24px !important;
+    padding-top:18px !important;
+    border-top:1px solid rgba(148,163,184,.14) !important;
+    color:#64748b !important;
+    font-size:9.5px !important;
+    line-height:1.55 !important;
+    font-weight:900 !important;
+    letter-spacing:.65px !important;
+    opacity:.85 !important;
+}
+
+
+/* =========================================================
+   AUTORIZADOS — SHELL IDÊNTICO À PÁGINA ACESSOS
+   Acessos é a referência visual/dimensional.
+   ========================================================= */
+
+/* mesma área útil */
+html body .conteudo-sistema{
+    margin-left:58px !important;
+    width:calc(100vw - 58px) !important;
+    height:100vh !important;
+    padding:0 !important;
+    overflow:hidden !important;
+}
+
+/* mesmo container */
+html body .conteudo-sistema > .container{
+    width:100% !important;
+    height:100vh !important;
+    max-width:none !important;
+    margin:0 !important;
+    padding:8px 10px 6px 10px !important;
+    border-radius:0 !important;
+    border:none !important;
+    box-shadow:none !important;
+    background:transparent !important;
+    box-sizing:border-box !important;
+    display:grid !important;
+    grid-template-rows:30px minmax(0,1fr) auto !important;
+    gap:5px !important;
+}
+
+/* cabeçalho exatamente nas medidas de Acessos */
+html body .topo-sistema{
+    height:30px !important;
+    min-height:30px !important;
+    max-height:30px !important;
+    margin:0 !important;
+    padding:0 !important;
+    align-items:center !important;
+}
+
+html body .topo-info{
+    min-height:30px !important;
+    height:30px !important;
+    display:flex !important;
+    align-items:center !important;
+    gap:6px !important;
+}
+
+html body .topo-info .badge,
+html body .data-plantao{
+    height:22px !important;
+    min-height:22px !important;
+    max-height:22px !important;
+    line-height:22px !important;
+    font-size:7px !important;
+    box-sizing:border-box !important;
+}
+
+html body .topo-info .badge{
+    margin:0 !important;
+    padding:0 10px !important;
+    border-radius:999px !important;
+}
+
+html body .data-plantao{
+    padding:0 10px !important;
+}
+
+html body .topo-logo{
+    padding:0 !important;
+    margin:0 !important;
+    height:30px !important;
+    display:flex !important;
+    align-items:center !important;
+}
+
+html body .topo-logo img{
+    width:70px !important;
+    max-width:70px !important;
+    height:auto !important;
+}
+
+html body .menu-usuario{
+    display:flex !important;
+    align-items:center !important;
+    height:30px !important;
+}
+
+html body .btn-menu-usuario{
+    width:28px !important;
+    min-width:28px !important;
+    max-width:28px !important;
+    height:24px !important;
+    min-height:24px !important;
+    max-height:24px !important;
+    padding:0 !important;
+    font-size:14px !important;
+}
+
+/* área começa no mesmo ponto e usa o mesmo espaçamento */
+html body main.area{
+    min-height:0 !important;
+    height:100% !important;
+    padding:6px !important;
+    margin:0 !important;
+    overflow:auto !important;
+    box-sizing:border-box !important;
+}
+
+/* conteúdo específico de autorizados apenas se adapta ao shell */
+html body .area-autorizados{
+    width:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+    gap:6px !important;
+}
+
+/* footer com a mesma compactação */
+html body .footer{
+    margin:0 !important;
+    padding:0 !important;
+    min-height:12px !important;
+    font-size:7px !important;
+    line-height:12px !important;
+}
+
+/* garante que sidebar dedicada continue soberana */
+html body .ws-sidebar ~ .conteudo-sistema,
+html body .ws-sidebar:hover ~ .conteudo-sistema{
+    margin-left:58px !important;
+    width:calc(100vw - 58px) !important;
+}
+
+
+/* ===== AUTORIZADOS — AÇÕES DO CARD NO PADRÃO ACESSOS ===== */
+.card-botoes-autorizado{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) 30px 30px !important;
+    gap:5px !important;
+    align-items:center !important;
+}
+
+.card-botoes-autorizado .btn-glpi-autorizado,
+.card-botoes-autorizado .btn-limpar{
+    width:30px !important;
+    min-width:30px !important;
+    max-width:30px !important;
+    height:28px !important;
+    min-height:28px !important;
+    max-height:28px !important;
+    padding:0 !important;
+    border-radius:7px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    font-weight:900 !important;
+    box-shadow:none !important;
+}
+
+.card-botoes-autorizado .btn-glpi-autorizado{
+    background:rgba(14,165,233,.12) !important;
+    color:#7dd3fc !important;
+    border:1px solid rgba(56,189,248,.23) !important;
+    font-size:13px !important;
+}
+
+.card-botoes-autorizado .btn-glpi-autorizado:hover{
+    background:rgba(14,165,233,.22) !important;
+    border-color:rgba(56,189,248,.38) !important;
+    transform:none !important;
+}
+
+.card-botoes-autorizado .btn-limpar{
+    background:#111c2e !important;
+    color:#94a3b8 !important;
+    border:1px solid rgba(148,163,184,.12) !important;
+    font-size:16px !important;
+}
+
+.card-botoes-autorizado .btn-limpar::after{
+    content:none !important;
+}
+
+.card-botoes-autorizado .btn-limpar:hover{
+    background:rgba(127,29,29,.28) !important;
+    color:#fecaca !important;
+    border-color:rgba(248,113,113,.28) !important;
+    transform:none !important;
+}
+
+
+/* =========================================================
+   AUTORIZADOS — FORMULÁRIO TEAMS EM POPUP
+   ========================================================= */
+
+body.modal-aberto{
+    overflow:hidden !important;
+}
+
+/* busca com botão Teams */
+.busca-autorizados{
+    grid-template-columns:minmax(0,1fr) auto auto !important;
+}
+.btn-formulario-teams{
+    width:auto !important;
+    min-width:78px !important;
+    height:31px !important;
+    min-height:31px !important;
+    padding:0 10px !important;
+    border-radius:7px !important;
+    font-size:7px !important;
+    font-weight:900 !important;
+    background:#101b2d !important;
+    color:#93c5fd !important;
+    border:1px solid rgba(96,165,250,.18) !important;
+    box-shadow:none !important;
+}
+.btn-formulario-teams:hover{
+    background:#16253b !important;
+    border-color:rgba(96,165,250,.30) !important;
+    transform:none !important;
+}
+
+/* overlay */
+.modal-teams{
+    display:none !important;
+}
+.modal-teams.aberto{
+    display:flex !important;
+    position:fixed !important;
+    inset:0 !important;
+    z-index:11000 !important;
+    align-items:center !important;
+    justify-content:center !important;
+    padding:18px !important;
+    background:rgba(2,6,23,.65) !important;
+    backdrop-filter:blur(6px) !important;
+}
+
+/* cartão único */
+.modal-teams-card{
+    width:min(1120px,94vw) !important;
+    max-height:calc(100vh - 36px) !important;
+    display:flex !important;
+    flex-direction:column !important;
+    overflow:hidden !important;
+    background:#0a1426 !important;
+    border:1px solid rgba(96,165,250,.20) !important;
+    border-radius:14px !important;
+    box-shadow:0 24px 70px rgba(0,0,0,.48) !important;
+}
+
+.modal-teams-topo{
+    flex:0 0 auto !important;
+    min-height:52px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:12px !important;
+    padding:10px 12px 9px !important;
+    background:#0d182a !important;
+    border-bottom:1px solid rgba(148,163,184,.10) !important;
+}
+.modal-teams-topo h2{
+    margin:0 0 2px !important;
+    font-size:13px !important;
+    color:#f8fafc !important;
+}
+.modal-teams-topo p{
+    margin:0 !important;
+    font-size:7.5px !important;
+    color:#71839d !important;
+}
+.btn-fechar-modal-teams{
+    width:30px !important;
+    min-width:30px !important;
+    height:30px !important;
+    min-height:30px !important;
+    padding:0 !important;
+    border-radius:8px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    background:#111c2e !important;
+    color:#94a3b8 !important;
+    border:1px solid rgba(148,163,184,.12) !important;
+    font-size:17px !important;
+    box-shadow:none !important;
+}
+
+/* aproveita o preview que já gera perfeito */
+.modal-teams .preview-teams{
+    flex:1 1 auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+    overflow:auto !important;
+    padding:12px !important;
+    background:#07101f !important;
+    display:block !important;
+}
+
+/* ações internas compactas */
+.modal-teams .acoes-preview-teams{
+    position:sticky !important;
+    top:0 !important;
+    z-index:3 !important;
+    padding:0 0 8px !important;
+    background:#07101f !important;
+}
+.modal-teams .btn-fechar-preview-teams{
+    display:none !important;
+}
+
+/* responsivo */
+@media(max-width:700px){
+    .busca-autorizados{
+        grid-template-columns:1fr !important;
+    }
+    .btn-formulario-teams{
+        width:100% !important;
+    }
+    .modal-teams{
+        padding:8px !important;
+    }
+    .modal-teams-card{
+        width:100% !important;
+        max-height:calc(100vh - 16px) !important;
+    }
+}
+
+
+/* =========================================================
+   PRÉ-AUTORIZADOS — IMPORTAÇÃO MENSAL EXCEL
+   ========================================================= */
+.painel-preautorizados{
+    background:#0b1425 !important;
+    border:1px solid rgba(96,165,250,.16) !important;
+    border-radius:10px !important;
+    padding:9px !important;
+    margin:0 !important;
+}
+.preautorizados-topo{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:12px !important;
+}
+.preautorizados-topo h2{
+    margin:0 0 3px !important;
+    color:#e2e8f0 !important;
+    font-size:10px !important;
+}
+.preautorizados-topo p{
+    margin:0 !important;
+    color:#71839d !important;
+    font-size:7.5px !important;
+}
+.btn-atualizar-preautorizados{
+    height:30px !important;
+    min-height:30px !important;
+    padding:0 11px !important;
+    border-radius:7px !important;
+    background:rgba(37,99,235,.18) !important;
+    color:#7dd3fc !important;
+    border:1px solid rgba(56,189,248,.22) !important;
+    font-size:7px !important;
+    font-weight:900 !important;
+    white-space:nowrap !important;
+    box-shadow:none !important;
+}
+.preautorizados-status{
+    display:grid !important;
+    grid-template-columns:2fr .7fr 1fr !important;
+    gap:6px !important;
+    margin-top:8px !important;
+}
+.preautorizados-status > div{
+    min-height:42px !important;
+    padding:6px 9px !important;
+    border-radius:8px !important;
+    background:#091326 !important;
+    border:1px solid rgba(148,163,184,.09) !important;
+    display:flex !important;
+    flex-direction:column !important;
+    justify-content:center !important;
+}
+.preautorizados-status span{
+    color:#64748b !important;
+    font-size:6px !important;
+    font-weight:900 !important;
+}
+.preautorizados-status strong{
+    margin-top:3px !important;
+    color:#dbeafe !important;
+    font-size:8px !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+}
+.mini-info-preautorizados{
+    margin:6px 0 0 !important;
+    color:#52647d !important;
+    font-size:7px !important;
+}
+@media(max-width:750px){
+    .preautorizados-topo{align-items:stretch !important;flex-direction:column !important;}
+    .preautorizados-status{grid-template-columns:1fr !important;}
+}
+
+
+/* ===== DATA AUTORIZADOS — VISIBILIDADE ===== */
+#dataPlantao.data-plantao{
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    width:auto !important;
+    min-width:max-content !important;
+    opacity:1 !important;
+    visibility:visible !important;
+    color:#93c5fd !important;
+    font-size:7px !important;
+    font-weight:900 !important;
+    white-space:nowrap !important;
+}
+
+
+/* ===== DATA AUTORIZADOS — FIX DIRETO NO HTML ===== */
+html body #dataPlantao.data-plantao{
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    flex:0 0 auto !important;
+    width:auto !important;
+    min-width:145px !important;
+    max-width:none !important;
+    height:22px !important;
+    min-height:22px !important;
+    max-height:22px !important;
+    margin:0 !important;
+    padding:0 10px !important;
+    overflow:visible !important;
+    opacity:1 !important;
+    visibility:visible !important;
+    white-space:nowrap !important;
+    border-radius:999px !important;
+    color:#93c5fd !important;
+    background:rgba(30,41,59,.75) !important;
+    border:1px solid rgba(147,197,253,.20) !important;
+    font-size:7px !important;
+    font-weight:900 !important;
+    line-height:22px !important;
+}
+
+
+/* ===== DATA AUTORIZADOS — MESMA PROPORÇÃO DE ACESSOS ===== */
+html body #dataPlantao.data-plantao{
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    width:max-content !important;
+    min-width:0 !important;
+    max-width:none !important;
+    flex:0 0 auto !important;
+
+    height:22px !important;
+    min-height:22px !important;
+    max-height:22px !important;
+
+    margin:0 !important;
+    padding:0 10px !important;
+
+    border-radius:999px !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+
+    font-size:7px !important;
+    line-height:22px !important;
+    font-weight:900 !important;
+
+    opacity:1 !important;
+    visibility:visible !important;
+
+    background:rgba(30,41,59,.75) !important;
+    border:1px solid rgba(147,197,253,.20) !important;
+    color:#93c5fd !important;
+}
+
+
+/* ===== RESUMOS AUTORIZADOS — NÚMERO AO LADO DO NOME ===== */
+html body .resumo-operacional{
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    gap:8px !important;
+}
+
+html body .resumo-operacional span{
+    margin:0 !important;
+    line-height:1 !important;
+}
+
+html body .resumo-operacional strong{
+    margin:0 !important;
+    line-height:1 !important;
+}
+
+
+/* ===== RESUMO BASE — TÍTULO E NÚMERO NA MESMA LINHA ===== */
+html body .resumo-base > .mini-card{
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    gap:8px !important;
+}
+
+html body .resumo-base > .mini-card > span,
+html body .resumo-base > .mini-card > strong{
+    display:inline-block !important;
+    width:auto !important;
+    margin:0 !important;
+    padding:0 !important;
+    line-height:1 !important;
+}
+
+html body .resumo-base > .mini-card > strong{
+    flex:0 0 auto !important;
+}
+
+
+/* ===== RESUMO BASE — NÚMERO NO FINAL DO CARD ===== */
+html body .resumo-base > .mini-card{
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    gap:8px !important;
+}
+
+html body .resumo-base > .mini-card > span{
+    margin:0 !important;
+}
+
+html body .resumo-base > .mini-card > strong{
+    margin:0 0 0 auto !important;
+    flex:0 0 auto !important;
+    text-align:right !important;
+}
+
+
+/* ===== PRÉ-AUTORIZADOS — BLOCO SIMPLES ===== */
+.painel-preautorizados-simples{
+    padding:8px 10px !important;
+}
+
+.preautorizados-simples-conteudo{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:12px !important;
+}
+
+.preautorizados-simples-conteudo h2{
+    margin:0 0 2px !important;
+    font-size:9px !important;
+}
+
+.preautorizados-simples-conteudo p{
+    margin:0 !important;
+    font-size:7px !important;
+    color:#64748b !important;
+}
+
+.preautorizados-simples-conteudo .btn-atualizar-preautorizados{
+    height:28px !important;
+    min-height:28px !important;
+    padding:0 11px !important;
+    white-space:nowrap !important;
+}
+
+@media(max-width:700px){
+    .preautorizados-simples-conteudo{
+        flex-direction:column !important;
+        align-items:stretch !important;
+    }
+
+    .preautorizados-simples-conteudo .btn-atualizar-preautorizados{
+        width:100% !important;
+    }
+}
+
+
+/* Pré-Autorizados — restaurar cor do título */
+html body .painel-preautorizados-simples .preautorizados-simples-conteudo h2{
+    color:#4f46e5 !important;
+}
+
+
+/* Pré-Autorizados — título branco */
+html body .painel-preautorizados-simples .preautorizados-simples-conteudo h2{
+    color:#ffffff !important;
+}
+
+
+/* ===== WESAFER AUTORIZADOS — RESPONSIVO ===== */
+@media(max-width:1024px){
+    html body .area-autorizados,
+    html body .painel-preautorizados,
+    html body .resumo-base{
+        width:100% !important;
+        min-width:0 !important;
+        max-width:100% !important;
+    }
+
+    html body .resumo-base{
+        display:grid !important;
+        grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+        gap:8px !important;
+    }
+
+    html body .resumo-base > .mini-card{
+        min-width:0 !important;
+        width:100% !important;
+    }
+
+    html body .preautorizados-simples-conteudo{
+        width:100% !important;
+        min-width:0 !important;
+    }
+
+    html body .lista-autorizados,
+    html body .cards-autorizados,
+    html body .grid-autorizados{
+        width:100% !important;
+        max-width:100% !important;
+    }
+}
+
+@media(max-width:760px){
+    html body .preautorizados-simples-conteudo{
+        display:flex !important;
+        flex-direction:column !important;
+        align-items:stretch !important;
+        gap:8px !important;
+    }
+
+    html body .preautorizados-simples-conteudo .btn-atualizar-preautorizados{
+        width:100% !important;
+        min-height:36px !important;
+    }
+
+    html body .resumo-base{
+        grid-template-columns:1fr !important;
+        gap:6px !important;
+    }
+
+    html body .resumo-base > .mini-card{
+        min-height:42px !important;
+        padding:8px 10px !important;
+    }
+
+    html body .lista-autorizados,
+    html body .cards-autorizados,
+    html body .grid-autorizados{
+        display:grid !important;
+        grid-template-columns:1fr !important;
+        gap:8px !important;
+    }
+
+    html body .card-autorizado,
+    html body [class*="card-autoriz"]{
+        width:100% !important;
+        min-width:0 !important;
+        max-width:100% !important;
+    }
+}
+
+@media(max-width:430px){
+    html body .painel-preautorizados-simples{
+        padding:10px !important;
+    }
+
+    html body .preautorizados-simples-conteudo h2{
+        font-size:8px !important;
+        line-height:1.25 !important;
+    }
+
+    html body .preautorizados-simples-conteudo p{
+        font-size:6.5px !important;
+        line-height:1.4 !important;
+    }
+}
+
+
+/* Popup das operações Gerar/Remover — camada superior */
+.ws-popup-operacao::backdrop{
+    background:transparent !important;
+}
+
+
+/* =========================================================
+   TOAST OPERAÇÃO — VISUAL ANTIGO RESTAURADO
+   ========================================================= */
+
+#toastContainerOperacao.toast-container-operacao{
+    position:fixed !important;
+    top:18px !important;
+    right:18px !important;
+    z-index:2147483647 !important;
+    width:260px !important;
+    max-width:calc(100vw - 36px) !important;
+    pointer-events:none !important;
+}
+
+#toastContainerOperacao .toast-operacao{
+    width:100% !important;
+    min-height:56px !important;
+    box-sizing:border-box !important;
+    display:flex !important;
+    align-items:center !important;
+    gap:10px !important;
+    padding:10px 12px !important;
+    border-radius:12px !important;
+    background:linear-gradient(180deg,#0b1424,#07101d) !important;
+    border:1px solid rgba(34,197,94,.24) !important;
+    border-left:3px solid #22c55e !important;
+    box-shadow:0 12px 30px rgba(0,0,0,.34) !important;
+    color:#fff !important;
+    pointer-events:auto !important;
+}
+
+#toastContainerOperacao .toast-operacao.erro{
+    border-color:rgba(239,68,68,.28) !important;
+    border-left-color:#ef4444 !important;
+}
+
+#toastContainerOperacao .toast-operacao.aviso{
+    border-color:rgba(234,179,8,.28) !important;
+    border-left-color:#eab308 !important;
+}
+
+#toastContainerOperacao .toast-operacao.carregando{
+    border-color:rgba(56,189,248,.28) !important;
+    border-left-color:#38bdf8 !important;
+}
+
+#toastContainerOperacao .toast-operacao-icone{
+    width:30px !important;
+    height:30px !important;
+    min-width:30px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    border-radius:999px !important;
+    background:rgba(34,197,94,.13) !important;
+    color:#22c55e !important;
+    font-size:17px !important;
+    line-height:1 !important;
+}
+
+#toastContainerOperacao .toast-operacao.erro .toast-operacao-icone{
+    background:rgba(239,68,68,.12) !important;
+}
+
+#toastContainerOperacao .toast-operacao.aviso .toast-operacao-icone{
+    background:rgba(234,179,8,.12) !important;
+}
+
+#toastContainerOperacao .toast-operacao.carregando .toast-operacao-icone{
+    background:rgba(56,189,248,.12) !important;
+}
+
+#toastContainerOperacao .toast-operacao-texto{
+    min-width:0 !important;
+    display:grid !important;
+    gap:2px !important;
+}
+
+#toastContainerOperacao .toast-operacao-texto strong{
+    margin:0 !important;
+    color:#f8fafc !important;
+    font-size:11px !important;
+    font-weight:900 !important;
+    line-height:1.1 !important;
+}
+
+#toastContainerOperacao .toast-operacao-texto span{
+    margin:0 !important;
+    color:#a7b4c8 !important;
+    font-size:9px !important;
+    font-weight:700 !important;
+    line-height:1.25 !important;
+}
+
+@media(max-width:600px){
+    #toastContainerOperacao.toast-container-operacao{
+        top:12px !important;
+        right:12px !important;
+        width:min(260px,calc(100vw - 24px)) !important;
+    }
+}
+
+
+/* STATUS + PRAZO NO CARD DE AUTORIZADOS */
+.status-card-linha{
+    display:flex !important;
+    align-items:center !important;
+    gap:6px !important;
+    flex-wrap:wrap !important;
+    margin-bottom:6px !important;
+}
+.status-card-linha .status-base{
+    margin:0 !important;
+}

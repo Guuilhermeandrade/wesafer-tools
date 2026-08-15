@@ -1,0 +1,1235 @@
+/*
+=========================================================
+AUTORIZADOS — SIDEBAR CLONADA DA PÁGINA ACESSOS
+Fonte: index.html + css/acessos.css + css/sidebar.css
+=========================================================
+*/
+
+/* Regras globais compartilhadas da sidebar */
+
+/* =========================================================
+   WESAFER TOOLS — SIDEBAR ÚNICA E ISOLADA
+   Carregada por último em Acessos e Autorizados.
+   ========================================================= */
+
+:root{
+    --ws-side-closed:58px;
+    --ws-side-open:220px;
+    --ws-side-bg:#0f172a;
+    --ws-side-item:42px;
+}
+
+/* estrutura */
+html body .ws-sidebar{
+    position:fixed !important;
+    inset:0 auto 0 0 !important;
+    width:var(--ws-side-closed) !important;
+    min-width:var(--ws-side-closed) !important;
+    max-width:var(--ws-side-closed) !important;
+    height:100vh !important;
+    padding:0 !important;
+    margin:0 !important;
+    box-sizing:border-box !important;
+    overflow:hidden !important;
+    background:var(--ws-side-bg) !important;
+    border-right:1px solid rgba(148,163,184,.10) !important;
+    z-index:9999 !important;
+    box-shadow:none !important;
+    transition:
+        width .22s ease,
+        min-width .22s ease,
+        max-width .22s ease,
+        box-shadow .22s ease !important;
+}
+
+html body .ws-sidebar:hover{
+    width:var(--ws-side-open) !important;
+    min-width:var(--ws-side-open) !important;
+    max-width:var(--ws-side-open) !important;
+    box-shadow:16px 0 38px rgba(0,0,0,.25) !important;
+}
+
+/* o conteúdo nunca se move */
+html body .ws-sidebar ~ .conteudo-sistema,
+html body .ws-sidebar:hover ~ .conteudo-sistema{
+    margin-left:var(--ws-side-closed) !important;
+    width:calc(100vw - var(--ws-side-closed)) !important;
+}
+
+/* logo */
+html body .ws-sidebar-logo{
+    width:100% !important;
+    height:74px !important;
+    min-height:74px !important;
+    max-height:74px !important;
+    padding:0 !important;
+    margin:0 0 6px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    overflow:hidden !important;
+    box-sizing:border-box !important;
+}
+
+html body .ws-sidebar-logo img{
+    position:static !important;
+    transform:none !important;
+    object-fit:contain !important;
+    margin:0 !important;
+    padding:0 !important;
+    filter:none !important;
+}
+
+html body .ws-sidebar-logo .logo-coruja{
+    display:block !important;
+    width:30px !important;
+    min-width:30px !important;
+    max-width:30px !important;
+    height:auto !important;
+    opacity:.82 !important;
+}
+
+html body .ws-sidebar-logo .logo-completa{
+    display:none !important;
+    width:118px !important;
+    min-width:118px !important;
+    max-width:118px !important;
+    height:auto !important;
+    opacity:.82 !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-logo{
+    height:94px !important;
+    min-height:94px !important;
+    max-height:94px !important;
+    justify-content:flex-start !important;
+    padding-left:28px !important;
+    margin-bottom:8px !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-logo .logo-coruja{
+    display:none !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-logo .logo-completa{
+    display:block !important;
+}
+
+/* menu fechado: só ícones */
+html body .ws-sidebar-menu{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    width:100% !important;
+    gap:10px !important;
+    margin:0 !important;
+    padding:0 !important;
+    box-sizing:border-box !important;
+}
+
+html body .ws-sidebar-menu a{
+    width:var(--ws-side-item) !important;
+    min-width:var(--ws-side-item) !important;
+    max-width:var(--ws-side-item) !important;
+    height:var(--ws-side-item) !important;
+    min-height:var(--ws-side-item) !important;
+    max-height:var(--ws-side-item) !important;
+    margin:0 !important;
+    padding:0 !important;
+    box-sizing:border-box !important;
+    border-radius:12px !important;
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:0 !important;
+    overflow:hidden !important;
+    text-decoration:none !important;
+    color:#cbd5e1 !important;
+    background:transparent !important;
+    border:1px solid transparent !important;
+    box-shadow:none !important;
+}
+
+html body .ws-sidebar-menu .menu-icon{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    flex:0 0 22px !important;
+    width:22px !important;
+    min-width:22px !important;
+    max-width:22px !important;
+    font-size:17px !important;
+    line-height:1 !important;
+    margin:0 !important;
+    padding:0 !important;
+}
+
+html body .ws-sidebar-menu .menu-text{
+    display:none !important;
+    visibility:hidden !important;
+    opacity:0 !important;
+    width:0 !important;
+    min-width:0 !important;
+    max-width:0 !important;
+    overflow:hidden !important;
+    margin:0 !important;
+    padding:0 !important;
+}
+
+/* aberto: ícone + nome */
+html body .ws-sidebar:hover .ws-sidebar-menu{
+    align-items:stretch !important;
+    gap:12px !important;
+    padding:0 14px !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-menu a{
+    width:100% !important;
+    min-width:100% !important;
+    max-width:100% !important;
+    height:48px !important;
+    min-height:48px !important;
+    max-height:48px !important;
+    padding:0 16px !important;
+    justify-content:flex-start !important;
+    gap:13px !important;
+    border-radius:13px !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-menu .menu-text{
+    display:block !important;
+    visibility:visible !important;
+    opacity:1 !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    overflow:visible !important;
+    white-space:nowrap !important;
+    color:#f8fafc !important;
+    font-size:12px !important;
+    font-weight:800 !important;
+    line-height:1 !important;
+}
+
+/* ativo */
+html body .ws-sidebar-menu a.ativo{
+    background:rgba(37,99,235,.23) !important;
+    border-color:rgba(96,165,250,.30) !important;
+    color:#fff !important;
+}
+
+html body .ws-sidebar-menu a::before,
+html body .ws-sidebar-menu a.ativo::before{
+    display:none !important;
+    content:none !important;
+}
+
+/* remove rodapé antigo que variava por página */
+html body .ws-sidebar::after,
+html body .ws-sidebar:hover::after{
+    display:none !important;
+    content:none !important;
+}
+
+
+/* Regras específicas que a página Acessos aplica à sidebar/conteúdo */
+.sidebar{
+    width:64px !important;
+    min-width:64px !important;
+}
+
+.sidebar-logo{
+    padding:14px 8px !important;
+}
+
+.sidebar-logo img{
+    max-width:34px !important;
+}
+
+.conteudo-sistema{
+    margin-left:64px !important;
+    width:calc(100vw - 64px) !important;
+    padding:6px 8px !important;
+}
+
+@media(min-width:1500px){
+    .conteudo-sistema{
+        padding:6px 8px !important;
+    }
+
+    .container{
+        padding:8px 12px !important;
+    }
+
+    .kanban-coluna{
+        min-height:calc(100vh - 260px) !important;
+        max-height:calc(100vh - 260px) !important;
+    }
+}
+
+.layout-sistema{
+    width:100vw !important;
+    height:100vh !important;
+    min-height:100vh !important;
+    display:flex !important;
+    overflow:hidden !important;
+}
+
+.sidebar{
+    position:fixed !important;
+    left:0 !important;
+    top:0 !important;
+    bottom:0 !important;
+    width:56px !important;
+    min-width:56px !important;
+    height:100vh !important;
+    z-index:1000 !important;
+}
+
+.sidebar-logo{
+    height:54px !important;
+    padding:10px 6px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+}
+
+.sidebar-logo img{
+    max-width:32px !important;
+    max-height:32px !important;
+}
+
+.sidebar-menu{
+    padding:8px 6px !important;
+    gap:10px !important;
+}
+
+.sidebar-menu a{
+    width:42px !important;
+    height:42px !important;
+    min-height:42px !important;
+    padding:0 !important;
+    border-radius:12px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+}
+
+.sidebar-menu .menu-icon{
+    font-size:18px !important;
+}
+
+.sidebar-menu .menu-text{
+    display:none !important;
+}
+
+.conteudo-sistema{
+    margin-left:56px !important;
+    width:calc(100vw - 56px) !important;
+    height:100vh !important;
+    padding:0 !important;
+    overflow:hidden !important;
+    background:
+        radial-gradient(circle at top left,rgba(37,99,235,.22),transparent 28%),
+        radial-gradient(circle at bottom right,rgba(14,165,233,.16),transparent 30%),
+        linear-gradient(180deg,#0f172a,#111827) !important;
+}
+
+@media(max-width:1200px){
+    body{
+        overflow:auto !important;
+    }
+
+    .conteudo-sistema{
+        overflow:auto !important;
+    }
+
+    .container{
+        min-width:1100px !important;
+    }
+
+    .kanban-board{
+        grid-template-columns:repeat(4,260px) !important;
+        overflow-x:auto !important;
+    }
+}
+
+.sidebar{
+    width:58px !important;
+    min-width:58px !important;
+    background:linear-gradient(180deg,#0b1222,#0f172a) !important;
+    border-right:1px solid rgba(147,197,253,.12) !important;
+    box-shadow:8px 0 28px rgba(0,0,0,.18) !important;
+}
+
+.conteudo-sistema{
+    margin-left:58px !important;
+    width:calc(100vw - 58px) !important;
+}
+
+.sidebar-logo{
+    height:48px !important;
+    padding:8px 4px !important;
+    margin-bottom:18px !important;
+}
+
+.sidebar-logo img{
+    max-width:30px !important;
+    opacity:.55 !important;
+}
+
+.sidebar-menu{
+    padding:0 7px !important;
+    gap:12px !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+}
+
+.sidebar-menu a{
+    width:42px !important;
+    height:42px !important;
+    min-height:42px !important;
+    border-radius:13px !important;
+    margin:0 !important;
+    background:transparent !important;
+    border:1px solid transparent !important;
+}
+
+.sidebar-menu a:hover,
+.sidebar-menu a.ativo{
+    background:rgba(37,99,235,.25) !important;
+    border-color:rgba(147,197,253,.20) !important;
+    box-shadow:0 8px 22px rgba(37,99,235,.16) !important;
+}
+
+.sidebar-menu .menu-icon{
+    font-size:17px !important;
+    line-height:1 !important;
+}
+
+.sidebar{
+    width:58px !important;
+    min-width:58px !important;
+    overflow:visible !important;
+    transition:width .22s ease, min-width .22s ease !important;
+}
+
+.conteudo-sistema{
+    margin-left:58px !important;
+    width:calc(100vw - 58px) !important;
+    transition:margin-left .22s ease, width .22s ease !important;
+}
+
+.sidebar:hover{
+    width:210px !important;
+    min-width:210px !important;
+    z-index:2000 !important;
+    box-shadow:18px 0 45px rgba(0,0,0,.28) !important;
+}
+
+.sidebar-logo{
+    height:62px !important;
+    padding:12px 8px !important;
+    margin-bottom:14px !important;
+    justify-content:center !important;
+    transition:.22s ease !important;
+}
+
+.sidebar-logo img{
+    max-width:34px !important;
+    opacity:.55 !important;
+    transition:.22s ease !important;
+}
+
+.sidebar:hover .sidebar-logo{
+    height:88px !important;
+    padding:18px 22px 8px 22px !important;
+    justify-content:flex-start !important;
+}
+
+.sidebar:hover .sidebar-logo img{
+    max-width:105px !important;
+    opacity:.72 !important;
+}
+
+.sidebar-menu{
+    padding:0 8px !important;
+    gap:12px !important;
+    align-items:center !important;
+}
+
+.sidebar-menu a{
+    width:42px !important;
+    height:42px !important;
+    min-height:42px !important;
+    padding:0 !important;
+    border-radius:13px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:0 !important;
+    overflow:hidden !important;
+    transition:.22s ease !important;
+}
+
+.sidebar-menu .menu-text{
+    display:inline-block !important;
+    opacity:0 !important;
+    width:0 !important;
+    max-width:0 !important;
+    overflow:hidden !important;
+    white-space:nowrap !important;
+    font-size:13px !important;
+    font-weight:900 !important;
+    letter-spacing:.3px !important;
+    transition:opacity .18s ease, max-width .22s ease, width .22s ease !important;
+}
+
+.sidebar-menu .menu-icon{
+    width:22px !important;
+    min-width:22px !important;
+    font-size:17px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+}
+
+.sidebar:hover .sidebar-menu{
+    padding:0 14px !important;
+    align-items:stretch !important;
+}
+
+.sidebar:hover .sidebar-menu a{
+    width:100% !important;
+    height:50px !important;
+    min-height:50px !important;
+    padding:0 16px !important;
+    justify-content:flex-start !important;
+    gap:14px !important;
+    overflow:visible !important;
+}
+
+.sidebar:hover .sidebar-menu .menu-text{
+    opacity:1 !important;
+    width:auto !important;
+    max-width:140px !important;
+}
+
+.sidebar::after{
+    content:"";
+    display:none !important;
+}
+
+.sidebar:hover::after{
+    content:"WESAFER TOOLS\A VERSÃO 2.4";
+    display:block !important;
+    white-space:pre;
+    position:absolute;
+    left:18px;
+    right:18px;
+    bottom:24px;
+    padding-top:18px;
+    border-top:1px solid rgba(148,163,184,.14);
+    color:#94a3b8;
+    font-size:11px;
+    line-height:1.45;
+    font-weight:900;
+    letter-spacing:.7px;
+}
+
+.sidebar:hover ~ .conteudo-sistema{
+    margin-left:58px !important;
+    width:calc(100vw - 58px) !important;
+}
+
+@media(max-width:900px){
+    .sidebar:hover{
+        width:58px !important;
+        min-width:58px !important;
+    }
+
+    .sidebar:hover .menu-text{
+        display:none !important;
+    }
+}
+
+.sidebar{
+    width:58px !important;
+    min-width:58px !important;
+    background:#0f172a !important;
+    border-right:1px solid rgba(147,197,253,.10) !important;
+    box-shadow:none !important;
+    overflow:visible !important;
+}
+
+.sidebar:hover{
+    width:220px !important;
+    min-width:220px !important;
+    background:#0f172a !important;
+    box-shadow:14px 0 35px rgba(0,0,0,.24) !important;
+}
+
+.sidebar-menu a::before,
+.sidebar-menu a.ativo::before,
+.sidebar:hover .sidebar-menu a::before,
+.sidebar:hover .sidebar-menu a.ativo::before{
+    display:none !important;
+    content:none !important;
+}
+
+.sidebar:hover .sidebar-logo{
+    height:96px !important;
+    padding:22px 28px 12px 28px !important;
+    justify-content:flex-start !important;
+}
+
+.sidebar:hover .sidebar-logo img{
+    max-width:120px !important;
+    max-height:58px !important;
+    opacity:.72 !important;
+}
+
+.sidebar:hover .sidebar-menu{
+    padding:0 16px !important;
+    gap:14px !important;
+}
+
+.sidebar:hover .sidebar-menu a{
+    width:100% !important;
+    height:54px !important;
+    min-height:54px !important;
+    padding:0 20px !important;
+    border-radius:16px !important;
+    gap:16px !important;
+    justify-content:flex-start !important;
+    background:transparent !important;
+    border:1px solid transparent !important;
+    box-shadow:none !important;
+}
+
+.sidebar:hover .sidebar-menu a.ativo{
+    background:rgba(37,99,235,.26) !important;
+    border:1px solid rgba(147,197,253,.30) !important;
+    box-shadow:none !important;
+}
+
+.sidebar:hover .sidebar-menu a:hover{
+    background:rgba(37,99,235,.16) !important;
+    border:1px solid rgba(147,197,253,.18) !important;
+    box-shadow:none !important;
+}
+
+.sidebar:hover .sidebar-menu .menu-text{
+    opacity:1 !important;
+    width:auto !important;
+    max-width:160px !important;
+    overflow:visible !important;
+    white-space:nowrap !important;
+    font-size:13px !important;
+    font-weight:900 !important;
+    color:#f8fafc !important;
+}
+
+.sidebar:hover .sidebar-menu .menu-icon{
+    width:22px !important;
+    min-width:22px !important;
+    font-size:16px !important;
+}
+
+.sidebar:hover::after{
+    display:block !important;
+    left:18px !important;
+    right:18px !important;
+    bottom:22px !important;
+    color:#64748b !important;
+    font-size:10px !important;
+    letter-spacing:.7px !important;
+}
+
+.sidebar:hover ~ .conteudo-sistema{
+    margin-left:58px !important;
+    width:calc(100vw - 58px) !important;
+}
+
+.sidebar{
+    background:#0f172a !important;
+}
+
+.sidebar:hover{
+    width:220px !important;
+    min-width:220px !important;
+    background:#0f172a !important;
+    box-shadow:16px 0 38px rgba(0,0,0,.22) !important;
+}
+
+.sidebar:hover .sidebar-logo{
+    height:108px !important;
+    padding:30px 26px 14px 26px !important;
+    margin-bottom:18px !important;
+    justify-content:flex-start !important;
+}
+
+.sidebar:hover .sidebar-logo img{
+    max-width:118px !important;
+    max-height:62px !important;
+    opacity:.76 !important;
+}
+
+.sidebar:hover .sidebar-menu{
+    padding:0 16px !important;
+    gap:18px !important;
+}
+
+.sidebar:hover .sidebar-menu a{
+    height:50px !important;
+    min-height:50px !important;
+    padding:0 18px !important;
+    border-radius:15px !important;
+    gap:15px !important;
+    background:transparent !important;
+    border:1px solid transparent !important;
+    box-shadow:none !important;
+}
+
+.sidebar:hover .sidebar-menu a.ativo{
+    background:rgba(37,99,235,.24) !important;
+    border:1px solid rgba(147,197,253,.30) !important;
+    box-shadow:none !important;
+}
+
+.sidebar:hover .sidebar-menu a:hover{
+    background:rgba(37,99,235,.15) !important;
+    border:1px solid rgba(147,197,253,.18) !important;
+    box-shadow:none !important;
+}
+
+.sidebar:hover .sidebar-menu .menu-icon{
+    width:22px !important;
+    min-width:22px !important;
+    font-size:15.5px !important;
+}
+
+.sidebar:hover .sidebar-menu .menu-text{
+    font-size:13px !important;
+    font-weight:900 !important;
+    letter-spacing:.15px !important;
+    color:#f8fafc !important;
+    max-width:160px !important;
+    line-height:1 !important;
+}
+
+.sidebar:hover::after{
+    bottom:24px !important;
+    color:#64748b !important;
+    font-size:9.5px !important;
+    line-height:1.55 !important;
+    letter-spacing:.65px !important;
+    opacity:.85 !important;
+}
+
+.sidebar-menu a::before,
+.sidebar-menu a.ativo::before,
+.sidebar:hover .sidebar-menu a::before,
+.sidebar:hover .sidebar-menu a.ativo::before{
+    display:none !important;
+    opacity:0 !important;
+    content:none !important;
+}
+
+.sidebar:hover{
+    width:245px !important;
+    min-width:245px !important;
+}
+
+.sidebar:hover .sidebar-menu{
+    padding:0 18px !important;
+}
+
+.sidebar:hover .sidebar-menu a{
+    width:100% !important;
+    padding:0 18px !important;
+    gap:14px !important;
+    box-sizing:border-box !important;
+}
+
+.sidebar:hover .sidebar-menu .menu-text{
+    display:inline-flex !important;
+    opacity:1 !important;
+    width:auto !important;
+    max-width:none !important;
+    min-width:0 !important;
+    overflow:visible !important;
+    white-space:nowrap !important;
+    flex:1 !important;
+}
+
+.sidebar:hover .sidebar-logo img{
+    max-width:122px !important;
+}
+
+.conteudo-sistema{
+    padding-top:10px !important;
+}
+
+.conteudo-sistema{
+    padding-top:6px !important;
+    padding-bottom:6px !important;
+}
+
+body .sidebar,
+body .sidebar:hover{
+    width:var(--ws-sidebar-fechada) !important;
+}
+
+body .sidebar:hover{
+    width:var(--ws-sidebar-aberta) !important;
+}
+
+.sidebar{
+    width:58px !important;
+    min-width:58px !important;
+    max-width:58px !important;
+    height:100vh !important;
+    padding:0 !important;
+    overflow:visible !important;
+    background:#0f172a !important;
+    transition:width .22s ease, min-width .22s ease, max-width .22s ease !important;
+}
+
+.conteudo-sistema,
+.sidebar:hover ~ .conteudo-sistema{
+    margin-left:58px !important;
+    width:calc(100vw - 58px) !important;
+}
+
+.sidebar:hover{
+    width:245px !important;
+    min-width:245px !important;
+    max-width:245px !important;
+    z-index:2000 !important;
+    background:#0f172a !important;
+    box-shadow:16px 0 38px rgba(0,0,0,.22) !important;
+}
+
+.sidebar-logo{
+    width:100% !important;
+    height:62px !important;
+    min-height:62px !important;
+    margin:0 0 14px !important;
+    padding:12px 8px !important;
+    box-sizing:border-box !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    overflow:hidden !important;
+}
+
+.sidebar-logo .logo-coruja{
+    display:block !important;
+    width:34px !important;
+    min-width:34px !important;
+    max-width:34px !important;
+    height:auto !important;
+    opacity:.55 !important;
+    object-fit:contain !important;
+}
+
+.sidebar-logo .logo-completa{
+    display:none !important;
+}
+
+.sidebar:hover .sidebar-logo{
+    height:108px !important;
+    min-height:108px !important;
+    margin-bottom:18px !important;
+    padding:30px 26px 14px 26px !important;
+    justify-content:flex-start !important;
+}
+
+.sidebar:hover .sidebar-logo .logo-coruja{
+    display:none !important;
+}
+
+.sidebar:hover .sidebar-logo .logo-completa{
+    display:block !important;
+    width:122px !important;
+    min-width:122px !important;
+    max-width:122px !important;
+    max-height:62px !important;
+    height:auto !important;
+    opacity:.76 !important;
+    object-fit:contain !important;
+}
+
+.sidebar-menu{
+    width:100% !important;
+    padding:0 8px !important;
+    margin:0 !important;
+    gap:12px !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    box-sizing:border-box !important;
+}
+
+.sidebar-menu a{
+    width:42px !important;
+    min-width:42px !important;
+    max-width:42px !important;
+    height:42px !important;
+    min-height:42px !important;
+    max-height:42px !important;
+    padding:0 !important;
+    margin:0 auto !important;
+    border-radius:13px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:0 !important;
+    overflow:hidden !important;
+    box-sizing:border-box !important;
+    transition:.22s ease !important;
+}
+
+.sidebar-menu .menu-icon{
+    width:22px !important;
+    min-width:22px !important;
+    max-width:22px !important;
+    font-size:17px !important;
+    line-height:1 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    margin:0 !important;
+}
+
+.sidebar-menu .menu-text{
+    display:inline-block !important;
+    opacity:0 !important;
+    width:0 !important;
+    min-width:0 !important;
+    max-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:hidden !important;
+    white-space:nowrap !important;
+    font-size:13px !important;
+    font-weight:900 !important;
+}
+
+.sidebar:hover .sidebar-menu{
+    padding:0 18px !important;
+    gap:18px !important;
+    align-items:stretch !important;
+}
+
+.sidebar:hover .sidebar-menu a{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    height:50px !important;
+    min-height:50px !important;
+    max-height:50px !important;
+    padding:0 18px !important;
+    margin:0 !important;
+    border-radius:15px !important;
+    justify-content:flex-start !important;
+    gap:14px !important;
+    overflow:visible !important;
+    box-sizing:border-box !important;
+}
+
+.sidebar:hover .sidebar-menu .menu-icon{
+    width:22px !important;
+    min-width:22px !important;
+    max-width:22px !important;
+    font-size:15.5px !important;
+}
+
+.sidebar:hover .sidebar-menu .menu-text{
+    display:inline-flex !important;
+    opacity:1 !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    overflow:visible !important;
+    white-space:nowrap !important;
+    flex:1 !important;
+    font-size:13px !important;
+    font-weight:900 !important;
+    letter-spacing:.15px !important;
+    color:#f8fafc !important;
+    line-height:1 !important;
+}
+
+.sidebar-menu a.ativo,
+.sidebar:hover .sidebar-menu a.ativo{
+    background:rgba(37,99,235,.24) !important;
+    border:1px solid rgba(147,197,253,.30) !important;
+    box-shadow:none !important;
+}
+
+.sidebar:hover .sidebar-menu a:hover{
+    background:rgba(37,99,235,.15) !important;
+    border:1px solid rgba(147,197,253,.18) !important;
+}
+
+.sidebar-menu a::before,
+.sidebar-menu a.ativo::before,
+.sidebar:hover .sidebar-menu a::before,
+.sidebar:hover .sidebar-menu a.ativo::before{
+    display:none !important;
+    opacity:0 !important;
+    content:none !important;
+}
+
+.sidebar::after{
+    content:"" !important;
+    display:none !important;
+}
+
+.sidebar:hover::after{
+    content:"WESAFER TOOLS\A VERSÃO 2.4" !important;
+    display:block !important;
+    white-space:pre !important;
+    position:absolute !important;
+    left:18px !important;
+    right:18px !important;
+    bottom:24px !important;
+    padding-top:18px !important;
+    border-top:1px solid rgba(148,163,184,.14) !important;
+    color:#64748b !important;
+    font-size:9.5px !important;
+    line-height:1.55 !important;
+    font-weight:900 !important;
+    letter-spacing:.65px !important;
+    opacity:.85 !important;
+}
+
+/* Segurança final: em Autorizados o item ativo é só AUTORIZADOS */
+html body .ws-sidebar-menu a[href="index.html"] {
+    /* mantém visual normal; regras de :ativo vêm da classe */
+}
+
+
+/* =========================================================
+   AUTORIZADOS — ESTADO ABERTO IDÊNTICO AO ACESSOS
+   O estado fechado já está correto e não é alterado aqui.
+   ========================================================= */
+
+/* largura e posição */
+html body .ws-sidebar:hover{
+    width:245px !important;
+    min-width:245px !important;
+    max-width:245px !important;
+    padding:0 !important;
+    overflow:visible !important;
+    background:#0f172a !important;
+    box-shadow:16px 0 38px rgba(0,0,0,.22) !important;
+}
+
+/* conteúdo continua parado como em Acessos */
+html body .ws-sidebar:hover ~ .conteudo-sistema{
+    margin-left:58px !important;
+    width:calc(100vw - 58px) !important;
+}
+
+/* logo aberta */
+html body .ws-sidebar:hover .ws-sidebar-logo{
+    width:100% !important;
+    height:108px !important;
+    min-height:108px !important;
+    max-height:108px !important;
+    padding:30px 26px 14px 26px !important;
+    margin:0 0 18px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    box-sizing:border-box !important;
+    overflow:hidden !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-logo .logo-coruja{
+    display:none !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-logo .logo-completa{
+    display:block !important;
+    width:122px !important;
+    min-width:122px !important;
+    max-width:122px !important;
+    max-height:62px !important;
+    height:auto !important;
+    margin:0 !important;
+    padding:0 !important;
+    opacity:.76 !important;
+    object-fit:contain !important;
+    transform:none !important;
+}
+
+/* menu aberto */
+html body .ws-sidebar:hover .ws-sidebar-menu{
+    width:100% !important;
+    padding:0 18px !important;
+    margin:0 !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:18px !important;
+    box-sizing:border-box !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-menu a{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    height:50px !important;
+    min-height:50px !important;
+    max-height:50px !important;
+    padding:0 18px !important;
+    margin:0 !important;
+    border-radius:15px !important;
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    gap:14px !important;
+    overflow:visible !important;
+    box-sizing:border-box !important;
+    white-space:nowrap !important;
+}
+
+/* ícone */
+html body .ws-sidebar:hover .ws-sidebar-menu .menu-icon{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    width:22px !important;
+    min-width:22px !important;
+    max-width:22px !important;
+    flex:0 0 22px !important;
+    margin:0 !important;
+    padding:0 !important;
+    font-size:15.5px !important;
+    line-height:1 !important;
+}
+
+/* texto */
+html body .ws-sidebar:hover .ws-sidebar-menu .menu-text{
+    display:inline-flex !important;
+    visibility:visible !important;
+    opacity:1 !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    flex:1 1 auto !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:visible !important;
+    white-space:nowrap !important;
+    font-size:13px !important;
+    font-weight:900 !important;
+    letter-spacing:.15px !important;
+    color:#f8fafc !important;
+    line-height:1 !important;
+    text-align:left !important;
+}
+
+/* ativo e hover */
+html body .ws-sidebar:hover .ws-sidebar-menu a.ativo{
+    background:rgba(37,99,235,.24) !important;
+    border:1px solid rgba(147,197,253,.30) !important;
+    box-shadow:none !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-menu a:hover{
+    background:rgba(37,99,235,.15) !important;
+    border:1px solid rgba(147,197,253,.18) !important;
+    box-shadow:none !important;
+}
+
+/* rodapé no aberto, igual Acessos */
+html body .ws-sidebar:hover::after{
+    content:"WESAFER TOOLS\A VERSÃO 2.4" !important;
+    display:block !important;
+    white-space:pre !important;
+    position:absolute !important;
+    left:18px !important;
+    right:18px !important;
+    bottom:24px !important;
+    padding-top:18px !important;
+    border-top:1px solid rgba(148,163,184,.14) !important;
+    color:#64748b !important;
+    font-size:9.5px !important;
+    line-height:1.55 !important;
+    font-weight:900 !important;
+    letter-spacing:.65px !important;
+    opacity:.85 !important;
+}
+
+
+/* =========================================================
+   AUTORIZADOS — REFINO DO ESTADO ABERTO
+   Fonte menor + logo completa sem corte
+   ========================================================= */
+
+/* logo aberta: centralizada e inteira */
+html body .ws-sidebar:hover .ws-sidebar-logo{
+    height:96px !important;
+    min-height:96px !important;
+    max-height:96px !important;
+    padding:18px 20px 10px 20px !important;
+    margin:0 0 12px !important;
+    justify-content:center !important;
+    align-items:center !important;
+    overflow:visible !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-logo .logo-completa{
+    display:block !important;
+    width:118px !important;
+    min-width:118px !important;
+    max-width:118px !important;
+    max-height:58px !important;
+    height:auto !important;
+    object-fit:contain !important;
+    object-position:center center !important;
+    transform:none !important;
+    margin:0 auto !important;
+    padding:0 !important;
+}
+
+/* menu aberto: fonte igual ao visual mais compacto de Acessos */
+html body .ws-sidebar:hover .ws-sidebar-menu{
+    padding:0 16px !important;
+    gap:14px !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-menu a{
+    height:48px !important;
+    min-height:48px !important;
+    max-height:48px !important;
+    padding:0 16px !important;
+    gap:13px !important;
+    border-radius:14px !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-menu .menu-text{
+    font-size:11px !important;
+    font-weight:800 !important;
+    letter-spacing:.10px !important;
+    line-height:1 !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-menu .menu-icon{
+    font-size:15px !important;
+}
+
+/* rodapé mais proporcional ao novo tamanho */
+html body .ws-sidebar:hover::after{
+    font-size:8px !important;
+    line-height:1.45 !important;
+    bottom:20px !important;
+}

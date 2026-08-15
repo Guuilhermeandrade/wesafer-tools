@@ -6,6 +6,87 @@ const STORAGE_KEY = "acessosWesaferKanban"
 
 const AUTH_KEY = "wesaferAuth"
 
+
+const STORAGE_PRE_AUTORIZADOS = "preAutorizadosWesafer"
+
+function normalizarNomePreAutorizado(valor){
+    return String(valor || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"")
+        .replace(/\s+/g," ")
+        .trim()
+        .toUpperCase()
+}
+
+function obterBasePreAutorizados(){
+    try{
+        const base = JSON.parse(localStorage.getItem(STORAGE_PRE_AUTORIZADOS) || "null")
+        return base && Array.isArray(base.itens) ? base : null
+    }catch(erro){
+        return null
+    }
+}
+
+
+async function carregarBasePreAutorizadosSupabase(){
+    try{
+        const resposta=await fetch(`${SUPABASE_REST_URL}/pre_autorizados?select=nome,nome_normalizado,empresa,regional,area,arquivo_origem,atualizado_em&order=atualizado_em.desc`,{headers:supabaseHeaders()})
+        if(!resposta.ok){console.error("Erro ao carregar pré-autorizados:",await resposta.text());return obterBasePreAutorizados()}
+        const dados=await resposta.json()
+        if(!dados.length){console.warn("Supabase retornou 0 pré-autorizados; mantendo o cache local.");return obterBasePreAutorizados()}
+        const recente=dados[0]
+        const base={
+            versao:3,criterio:"nome_completo",
+            arquivo:recente.arquivo_origem||"Lista salva no Supabase",
+            atualizadoEm:recente.atualizado_em||"",
+            total:dados.length,ignorados:0,abasLidas:0,
+            itens:dados.map(item=>({
+                nome:item.nome||"",
+                nomeNormalizado:item.nome_normalizado||normalizarNomePreAutorizado(item.nome),
+                empresa:item.empresa||"",regional:item.regional||"",area:item.area||""
+            }))
+        }
+        localStorage.setItem(STORAGE_PRE_AUTORIZADOS,JSON.stringify(base))
+        return base
+    }catch(erro){console.error("Falha ao sincronizar pré-autorizados:",erro);return obterBasePreAutorizados()}
+}
+
+
+function consultarPreAutorizado(nome){
+    const nomeNormalizado = normalizarNomePreAutorizado(nome)
+    const base = obterBasePreAutorizados()
+    if(!base) return {status:"sem_base", item:null}
+    if(!nomeNormalizado) return {status:"incompleto", item:null}
+    const exato = base.itens.find(item => normalizarNomePreAutorizado(item.nomeNormalizado || item.nome) === nomeNormalizado)
+    return exato ? {status:"pre_autorizado", item:exato} : {status:"nao_encontrado", item:null}
+}
+
+function atualizarStatusPreAutorizado(){
+    const campoStatus=document.getElementById("statusPreAutorizado")
+    const opcao=document.getElementById("opcaoAbrirAutorizado")
+    const checkbox=document.getElementById("abrirComoAutorizado")
+    if(!campoStatus) return {status:"indisponivel",item:null}
+    const tecnico=document.getElementById("tecnico")?.value || ""
+    const resultado=consultarPreAutorizado(tecnico)
+    const encontrado=resultado.status === "pre_autorizado"
+    campoStatus.className="status-preautorizado"
+    if(checkbox){checkbox.disabled=!encontrado;if(!encontrado)checkbox.checked=false}
+    if(opcao){opcao.classList.toggle("desabilitada",!encontrado);opcao.classList.toggle("habilitada",encontrado)}
+    if(encontrado){
+        campoStatus.classList.add("status-pre-ok")
+        const extra=[resultado.item?.empresa,resultado.item?.regional].filter(Boolean).join(" • ")
+        campoStatus.innerText=`✓ PRÉ-AUTORIZADO ENCONTRADO${extra ? " — "+extra : ""}`
+    }else if(resultado.status === "nao_encontrado"){
+        campoStatus.classList.add("status-pre-nao"); campoStatus.innerText="NÃO CONSTA NA LISTA DE PRÉ-AUTORIZADOS."
+    }else if(resultado.status === "sem_base"){
+        campoStatus.classList.add("status-pre-aviso"); campoStatus.innerText="Nenhuma lista mensal de pré-autorizados foi carregada."
+    }else{
+        campoStatus.classList.add("status-pre-neutro"); campoStatus.innerText="Informe o nome completo do técnico para verificar a lista mensal."
+    }
+    return resultado
+}
+
+
 function obterSessao(){
     return JSON.parse(localStorage.getItem(AUTH_KEY) || "null")
 }
@@ -734,6 +815,7 @@ function abrirModalExportacao(){
 
     if(modal){
         modal.classList.add("aberto")
+        document.body.classList.add("modal-aberto")
     }
 }
 
@@ -741,6 +823,7 @@ function fecharModalExportacao(){
     const modal = document.getElementById("modalExportacao")
     if(modal){
         modal.classList.remove("aberto")
+        document.body.classList.remove("modal-aberto")
     }
 }
 
@@ -1054,22 +1137,20 @@ async function carregar(){
 
 function abrirFormatador(){
     const box = document.getElementById("boxFormatador")
+    if(!box) return
 
-    if(box){
-        box.open = true
-        box.setAttribute("open", "")
-    }
-
-    document.getElementById("chamadoBruto").focus()
+    box.classList.add("aberto")
+    box.setAttribute("aria-hidden","false")
+    document.body.classList.add("modal-aberto")
 }
 
 function fecharFormatador(){
     const box = document.getElementById("boxFormatador")
+    if(!box) return
 
-    if(box){
-        box.open = false
-        box.removeAttribute("open")
-    }
+    box.classList.remove("aberto")
+    box.setAttribute("aria-hidden","true")
+    document.body.classList.remove("modal-aberto")
 }
 
 function extrairChamado(){
@@ -1129,10 +1210,10 @@ function extrairChamado(){
         /atividade[\s\S]{0,30}operacao/i.test(textoNormalizado)
 
     document.getElementById("tecnico").value = tecnico
-    document.getElementById("site").value = siteAjustado
+    document.getElementById("site").value = String(siteAjustado || "").slice(0,5)
     document.getElementById("ticket").value = ticket
     document.getElementById("solicitante").value = supervisor
-    document.getElementById("empresa").value = empresa
+    document.getElementById("empresa").value = String(empresa || "").slice(0,20)
     document.getElementById("periodo").value = periodo
     document.getElementById("acao").value = acao
 
@@ -1140,6 +1221,7 @@ function extrairChamado(){
     document.getElementById("portaOperadora").checked = portaOperadora || !portaMoura
     document.getElementById("implantacao").checked = implantacao || !operacao
     document.getElementById("operacao").checked = operacao
+    atualizarStatusPreAutorizado()
 }
 
 function limparFormulario(){
@@ -1147,12 +1229,79 @@ function limparFormulario(){
         document.getElementById(id).value = ""
     })
 
-    ;["portaMoura","portaOperadora","implantacao","operacao"].forEach(id => {
+    ;["portaMoura","portaOperadora","implantacao","operacao","abrirComoAutorizado"].forEach(id => {
         const campo = document.getElementById(id)
         if(campo){ campo.checked = false }
     })
+
+    atualizarStatusPreAutorizado()
 }
 
+
+
+function interpretarPeriodoAcesso(periodo){
+    const texto = String(periodo || "").trim()
+    const match = texto.match(/(\d{1,2})\/(\d{1,2})\s*(?:À|A|a|á|Á|-)\s*(\d{1,2})\/(\d{1,2})/)
+    if(!match) return null
+
+    const hoje = new Date()
+    const anoAtual = hoje.getFullYear()
+
+    const diaInicio = Number(match[1])
+    const mesInicio = Number(match[2]) - 1
+    const diaFim = Number(match[3])
+    const mesFim = Number(match[4]) - 1
+
+    let inicio = new Date(anoAtual, mesInicio, diaInicio)
+    let fim = new Date(anoAtual, mesFim, diaFim)
+
+    // Permite virada de ano, por exemplo 28/12 À 05/01.
+    if(fim < inicio){
+        fim = new Date(anoAtual + 1, mesFim, diaFim)
+    }
+
+    // Rejeita datas impossíveis normalizadas pelo Date.
+    if(
+        inicio.getDate() !== diaInicio ||
+        inicio.getMonth() !== mesInicio ||
+        fim.getDate() !== diaFim ||
+        fim.getMonth() !== mesFim
+    ){
+        return null
+    }
+
+    const dias = Math.round((fim - inicio) / 86400000)
+
+    return {inicio, fim, dias}
+}
+
+function periodoDentroDoLimite(periodo, limiteDias = 15){
+    const dados = interpretarPeriodoAcesso(periodo)
+    if(!dados) return false
+    return dados.dias >= 0 && dados.dias <= limiteDias
+}
+
+function validarPeriodoCampo(){
+    const campo = document.getElementById("periodo")
+    if(!campo || !campo.value.trim()) return true
+
+    const dados = interpretarPeriodoAcesso(campo.value)
+
+    if(!dados){
+        campo.classList.add("campo-invalido")
+        mostrarToast("Use o período no formato DD/MM À DD/MM.", "aviso", "Período inválido")
+        return false
+    }
+
+    if(dados.dias > 15){
+        campo.classList.add("campo-invalido")
+        mostrarToast(`O período pode ter no máximo 15 dias. O informado possui ${dados.dias} dias.`, "aviso", "Período excedido")
+        return false
+    }
+
+    campo.classList.remove("campo-invalido")
+    return true
+}
 
 function dataFinalDoPeriodo(periodo){
     if(!periodo) return null
@@ -1253,6 +1402,31 @@ async function adicionarCartao(){
         return
     }
 
+    if(site.length !== 5){
+        mostrarToast(
+            site.length < 5
+                ? `O SITE precisa ter exatamente 5 caracteres. Você informou ${site.length}.`
+                : "O SITE pode ter no máximo 5 caracteres.",
+            "aviso",
+            "Site inválido"
+        )
+        document.getElementById("site").focus()
+        return
+    }
+
+    if(empresa.length > 20){
+        mostrarToast("A EMPRESA pode ter no máximo 20 caracteres.", "aviso", "Empresa inválida")
+        document.getElementById("empresa").focus()
+        return
+    }
+
+    if(periodo && !validarPeriodoCampo()){
+        document.getElementById("periodo").focus()
+        return
+    }
+
+    const verificacaoPreAutorizado = atualizarStatusPreAutorizado()
+
     const existente = acessos.find(item => item.ticket === ticket && item.site === site && item.tecnico === tecnico)
 
     if(existente && !confirm("Esse acesso já existe. Deseja atualizar e trazer para o topo?")){
@@ -1280,23 +1454,24 @@ async function adicionarCartao(){
         portaOperadora: document.getElementById("portaOperadora").checked,
         implantacao: document.getElementById("implantacao").checked,
         operacao: document.getElementById("operacao").checked,
-        status: "aguardando",
+        status: (verificacaoPreAutorizado?.status === "pre_autorizado" && document.getElementById("abrirComoAutorizado")?.checked) ? "liberado" : "aguardando",
+        preAutorizado: verificacaoPreAutorizado?.status === "pre_autorizado",
+        origem: verificacaoPreAutorizado?.status === "pre_autorizado" ? "pre_autorizado" : "index",
         criadoEm: dataISOAgora(),
         atualizadoEm: dataISOAgora(),
         ordemColuna: Date.now(),
         dataUltimoMovimento: dataISOAgora()
     }
-    novoAcesso.status = "aguardando"
 
     acessos = acessos.filter(item => !mesmoAcessoNatural(item, novoAcesso))
     acessos.unshift(novoAcesso)
 
     await supabaseSalvarAcessoNatural(novoAcesso)
-    await registrarHistoricoAcesso(novoAcesso, "aguardando", "novo_acesso")
+    await registrarHistoricoAcesso(novoAcesso, novoAcesso.status, novoAcesso.status === "liberado" ? "novo_acesso_pre_autorizado" : "novo_acesso")
     localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
     renderizar()
 
-    salvarNaBaseAutorizados(novoAcesso, "aguardando")
+    salvarNaBaseAutorizados(novoAcesso, novoAcesso.status === "liberado" ? "autorizado" : "aguardando")
 
     limparFormulario()
     fecharFormatador()
@@ -1347,6 +1522,12 @@ async function remover(id){
     await supabaseExcluirAcesso(id);
 
     renderizar();
+}
+
+function confirmarEncerrarPlantao(){
+    const confirmar = window.confirm("Encerrar o plantão atual?\n\nEssa ação executará a limpeza do plantão. Confirme somente se deseja encerrar o quadro atual.")
+    if(!confirmar) return
+    limparPlantao()
 }
 
 async function limparPlantao(){
@@ -1618,6 +1799,7 @@ function abrirAnotacoes(){
 
     if(painel){
         painel.classList.add("aberto")
+        document.body.classList.add("modal-aberto")
     }
 
     if(anotacaoSelecionada === null && anotacoesRapidas.length){
@@ -1630,6 +1812,7 @@ function fecharAnotacoes(){
 
     if(painel){
         painel.classList.remove("aberto")
+        document.body.classList.remove("modal-aberto")
     }
 }
 
@@ -1702,24 +1885,34 @@ function renderizar(){
         card.dataset.id = acesso.id
 
         card.innerHTML = `
-            <span class="etiqueta ${classeEtiqueta}">${textoEtiqueta}</span>
-
-            <h3>${acesso.tecnico}</h3>
-
-            <div class="card-meta">
-                <div><strong>${acesso.site}</strong> • ${acesso.ticket}</div>
-                ${modoCompacto ? "" : `
-                <div><strong>PERÍODO:</strong> ${acesso.periodo || "-"}</div>
-                <div><strong>SOLICITANTE:</strong> ${acesso.solicitante || "-"}</div>
-                <div><strong>EMPRESA:</strong> ${acesso.empresa || "-"}</div>
-                `}
+            <div class="card-topo-moderno">
+                <span class="etiqueta ${classeEtiqueta}">${textoEtiqueta}</span>
+                ${acesso.origem === "pre_autorizado" || acesso.preAutorizado === true ? '<span class="badge-preautorizado-card">✓ PRÉ-AUTORIZADO</span>' : ""}
             </div>
-
-            <div class="card-botoes">
-                <button class="btn-amarelo" onclick="copiarTexto(${acesso.id}, 'liberacao')">SOLICITAR ACESSO</button>
+            <h3>${acesso.tecnico}</h3>
+            <div class="card-linha-principal">
+                <strong>${acesso.site}</strong>
+                <span>•</span>
+                <span>Ticket ${acesso.ticket}</span>
+                <a
+                    class="link-glpi-card"
+                    href="https://glpimecs.grupomoura.com/front/ticket.form.php?id=${encodeURIComponent(acesso.ticket)}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Abrir chamado ${acesso.ticket} no GLPI"
+                    aria-label="Abrir chamado ${acesso.ticket} no GLPI"
+                    onclick="event.stopPropagation()"
+                >↗</a>
+            </div>
+            ${modoCompacto ? "" : `
+            <div class="card-linha-secundaria"><strong>${acesso.empresa || "-"}</strong><span>•</span><span>${acesso.solicitante || "-"}</span></div>
+            <div class="card-periodo-moderno">Período: ${acesso.periodo || "-"}</div>
+            `}
+            <div class="card-botoes card-botoes-moderno">
+                <button class="btn-amarelo" onclick="copiarTexto(${acesso.id}, 'liberacao')">SOLICITAR</button>
                 <button onclick="executarAcaoCard(${acesso.id}, 'entrada', 'entrada')">ENTRADA</button>
                 <button onclick="executarAcaoCard(${acesso.id}, 'saida', 'saida')">SAÍDA</button>
-                <button class="btn-cinza" onclick="remover(${acesso.id})">REMOVER</button>
+                <button class="btn-remover-moderno" title="Remover acesso" aria-label="Remover acesso" onclick="remover(${acesso.id})">×</button>
             </div>
         `
 
@@ -1759,6 +1952,21 @@ function renderizar(){
     document.getElementById("qtdEntrada").innerText = contadores.entrada
     document.getElementById("qtdSaida").innerText = contadores.saida
 
+    // Resumo visual do topo: média de espera dos acessos que ainda aguardam liberação.
+    const aguardandoComData = acessos.filter(a => a.status === "aguardando" && a.criadoEm)
+    const agoraResumo = Date.now()
+    const esperasValidas = aguardandoComData.map(a => agoraResumo - new Date(a.criadoEm).getTime()).filter(ms => Number.isFinite(ms) && ms >= 0)
+    const mediaEspera = esperasValidas.length ? esperasValidas.reduce((soma, ms) => soma + ms, 0) / esperasValidas.length : null
+    const formatarDuracaoResumo = ms => {
+        if(ms === null || !Number.isFinite(ms)) return "—"
+        const minutos = Math.max(0, Math.round(ms / 60000))
+        if(minutos < 60) return `${minutos} min`
+        const h = Math.floor(minutos / 60), m = minutos % 60
+        return m ? `${h}h ${m}min` : `${h}h`
+    }
+    const elMediaAguardando = document.getElementById("tempoMedioAguardando")
+    if(elMediaAguardando) elMediaAguardando.innerText = formatarDuracaoResumo(mediaEspera)
+
     document.getElementById("colAguardando").innerText = contadores.aguardando
     document.getElementById("colLiberado").innerText = contadores.liberado
     document.getElementById("colEntrada").innerText = contadores.entrada
@@ -1786,6 +1994,36 @@ document.querySelectorAll(".kanban-coluna").forEach(coluna => {
     })
 })
 
+
+
+function configurarFechamentoPorCliqueFora(){
+    const boxFormatador = document.getElementById("boxFormatador")
+    if(boxFormatador){
+        boxFormatador.addEventListener("click", evento => {
+            if(evento.target === boxFormatador){
+                fecharFormatador()
+            }
+        })
+    }
+
+    const painelAnotacoes = document.getElementById("painelAnotacoes")
+    if(painelAnotacoes){
+        painelAnotacoes.addEventListener("click", evento => {
+            if(evento.target === painelAnotacoes){
+                fecharAnotacoes()
+            }
+        })
+    }
+
+    const modalExportacao = document.getElementById("modalExportacao")
+    if(modalExportacao){
+        modalExportacao.addEventListener("click", evento => {
+            if(evento.target === modalExportacao){
+                fecharModalExportacao()
+            }
+        })
+    }
+}
 
 function configurarMenuUsuario(){
     const btnMenuUsuario = document.getElementById("btnMenuUsuario")
@@ -1816,7 +2054,11 @@ window.addEventListener("DOMContentLoaded", async () => {
         return
     }
 
-    configurarMenuUsuario()
+    // Sincroniza pré-autorizados somente após validar/renovar o login.
+    await carregarBasePreAutorizadosSupabase()
+
+    configurarFechamentoPorCliqueFora()
+configurarMenuUsuario()
     atualizarDataPlantao()
     limparHistoricoAntigo()
     carregar()
@@ -1830,3 +2072,4 @@ async function atualizarAcessosAutomaticamente(){
 }
 
 setInterval(atualizarAcessosAutomaticamente, 5000)
+
