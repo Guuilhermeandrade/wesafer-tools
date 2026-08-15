@@ -1,7 +1,288 @@
 const AUTH_KEY = "wesaferAuth"
 
+
+const STORAGE_PRE_AUTORIZADOS = "preAutorizadosWesafer"
+
+function normalizarNomePreAutorizado(valor){
+    return String(valor || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"")
+        .replace(/\s+/g," ")
+        .trim()
+        .toUpperCase()
+}
+
+function normalizarCpfPreAutorizado(valor){
+    return String(valor || "").replace(/\D/g,"")
+}
+
+function obterBasePreAutorizados(){
+    try{
+        const dados = JSON.parse(localStorage.getItem(STORAGE_PRE_AUTORIZADOS) || "null")
+        return dados && Array.isArray(dados.itens) ? dados : null
+    }catch(erro){
+        return null
+    }
+}
+
+
+async function carregarBasePreAutorizadosSupabase(){
+    const resposta = await fetch(
+        `${SUPABASE_REST_URL}/pre_autorizados?select=nome,nome_normalizado,empresa,regional,area,arquivo_origem,atualizado_em&order=atualizado_em.desc`,
+        {headers:supabaseHeaders()}
+    )
+
+    if(!resposta.ok){
+        const erro = await resposta.text()
+        throw new Error(`Falha ao carregar pré-autorizados: ${resposta.status} ${erro}`)
+    }
+
+    const dados = await resposta.json()
+
+    if(!Array.isArray(dados) || !dados.length){
+        return obterBasePreAutorizados()
+    }
+
+    const recente = dados[0]
+
+    const base = {
+        versao:3,
+        criterio:"nome_completo",
+        arquivo:recente.arquivo_origem || "Lista salva no Supabase",
+        atualizadoEm:recente.atualizado_em || "",
+        total:dados.length,
+        ignorados:0,
+        abasLidas:0,
+        itens:dados.map(item => ({
+            nome:item.nome || "",
+            nomeNormalizado:item.nome_normalizado || normalizarNomePreAutorizado(item.nome),
+            empresa:item.empresa || "",
+            regional:item.regional || "",
+            area:item.area || ""
+        }))
+    }
+
+    // Cache local apenas para uso rápido na página Acessos.
+    localStorage.setItem(STORAGE_PRE_AUTORIZADOS, JSON.stringify(base))
+
+    return base
+}
+
+
+
+
+async function atualizarIndicadoresPreAutorizadosSupabase(){
+    const campoArquivo = document.getElementById("nomeArquivoPreAutorizados")
+    const campoQtd = document.getElementById("qtdPreAutorizados")
+    const campoData = document.getElementById("dataPreAutorizados")
+    const campoInfo = document.getElementById("infoImportacaoPreAutorizados")
+
+    const sessao = obterSessao()
+
+    if(!sessao?.access_token){
+        console.warn("Sessão não disponível para atualizar indicadores de pré-autorizados.")
+        return
+    }
+
+    try{
+        const resposta = await fetch(
+            `${SUPABASE_REST_URL}/pre_autorizados?select=arquivo_origem,atualizado_em&order=atualizado_em.desc`,
+            {
+                headers:{
+                    "apikey":SUPABASE_KEY,
+                    "Authorization":`Bearer ${sessao.access_token}`,
+                    "Content-Type":"application/json"
+                }
+            }
+        )
+
+        if(!resposta.ok){
+            throw new Error(`Supabase ${resposta.status}: ${await resposta.text()}`)
+        }
+
+        const dados = await resposta.json()
+
+        if(!Array.isArray(dados) || dados.length === 0){
+            if(campoArquivo) campoArquivo.innerText = "Nenhuma lista salva no Supabase"
+            if(campoQtd) campoQtd.innerText = "0"
+            if(campoData) campoData.innerText = "—"
+            if(campoInfo) campoInfo.innerText = "Nenhum técnico disponível na lista mensal."
+            return
+        }
+
+        const maisRecente = dados[0]
+
+        if(campoArquivo){
+            campoArquivo.innerText = maisRecente.arquivo_origem || "Lista salva no Supabase"
+        }
+
+        if(campoQtd){
+            campoQtd.innerText = String(dados.length)
+        }
+
+        if(campoData){
+            const valor = maisRecente.atualizado_em
+            if(valor){
+                const dataAtualizacao = new Date(valor)
+                campoData.innerText = Number.isNaN(dataAtualizacao.getTime())
+                    ? valor
+                    : dataAtualizacao.toLocaleString("pt-BR")
+            }else{
+                campoData.innerText = "Salva no Supabase"
+            }
+        }
+
+        if(campoInfo){
+            campoInfo.innerText = `${dados.length} técnico(s) disponíveis • validação por nome completo`
+        }
+    }catch(erro){
+        console.error("Erro ao atualizar indicadores de pré-autorizados:", erro)
+
+        // Importante: não sobrescreve os indicadores com "Nenhuma lista".
+        // Mantém na tela o último valor válido já renderizado.
+    }
+}
+
+function atualizarResumoPreAutorizados(base){
+    const nome = document.getElementById("nomeArquivoPreAutorizados")
+    const qtd = document.getElementById("qtdPreAutorizados")
+    const data = document.getElementById("dataPreAutorizados")
+    const info = document.getElementById("infoImportacaoPreAutorizados")
+
+    if(!base || !Array.isArray(base.itens) || !base.itens.length){
+        if(nome) nome.innerText = "Nenhuma lista carregada"
+        if(qtd) qtd.innerText = "0"
+        if(data) data.innerText = "—"
+        if(info) info.innerText = "Nenhuma lista mensal disponível no Supabase."
+        return
+    }
+
+    if(nome) nome.innerText = base.arquivo || "Lista salva no Supabase"
+    if(qtd) qtd.innerText = String(base.total || base.itens.length)
+
+    if(data){
+        if(base.atualizadoEm){
+            const d = new Date(base.atualizadoEm)
+            data.innerText = Number.isNaN(d.getTime()) ? base.atualizadoEm : d.toLocaleString("pt-BR")
+        }else{
+            data.innerText = "Salva no Supabase"
+        }
+    }
+
+    if(info){
+        info.innerText = `${base.total || base.itens.length} técnico(s) disponíveis • validação por nome completo`
+    }
+}
+
+function localizarColunaCabecalho(celulas, candidatos){
+    const normalizadas = celulas.map(normalizarNomePreAutorizado)
+    return normalizadas.findIndex(valor =>
+        candidatos.some(candidato => valor === candidato || valor.includes(candidato))
+    )
+}
+
+async function importarPlanilhaPreAutorizados(evento){
+    const arquivo = evento?.target?.files?.[0]
+    if(!arquivo) return
+    if(typeof XLSX === "undefined"){
+        mostrarToast("Não foi possível carregar o leitor de Excel. Verifique a conexão e tente novamente.", "erro", "Excel indisponível")
+        evento.target.value = ""
+        return
+    }
+    try{
+        const buffer = await arquivo.arrayBuffer()
+        const workbook = XLSX.read(buffer, {type:"array"})
+        const mapa = new Map()
+        let ignorados = 0
+        let abasLidas = 0
+        workbook.SheetNames.forEach(nomeAba => {
+            const sheet = workbook.Sheets[nomeAba]
+            const linhas = XLSX.utils.sheet_to_json(sheet,{header:1,raw:false,defval:""})
+            let indiceCabecalho=-1,colunaNome=-1,colunaEmpresa=-1,colunaRegional=-1,colunaArea=-1
+            for(let i=0;i<Math.min(linhas.length,25);i++){
+                const linha=Array.isArray(linhas[i])?linhas[i]:[]
+                const nomeIdx=localizarColunaCabecalho(linha,["NOME DO TECNICO","NOME DO TÉCNICO","NOME TECNICO","NOME TÉCNICO","NOME COMPLETO","NOME"])
+                if(nomeIdx>=0){
+                    indiceCabecalho=i; colunaNome=nomeIdx
+                    colunaEmpresa=localizarColunaCabecalho(linha,["EMPRESA"])
+                    colunaRegional=localizarColunaCabecalho(linha,["REGIONAL"])
+                    colunaArea=localizarColunaCabecalho(linha,["AREA","ÁREA"])
+                    break
+                }
+            }
+            if(indiceCabecalho<0) return
+            abasLidas++
+            for(let i=indiceCabecalho+1;i<linhas.length;i++){
+                const linha=Array.isArray(linhas[i])?linhas[i]:[]
+                const nomeOriginal=String(linha[colunaNome]||"").trim()
+                const nomeNormalizado=normalizarNomePreAutorizado(nomeOriginal)
+                if(!nomeNormalizado||nomeNormalizado.length<5){ignorados++;continue}
+                if(!mapa.has(nomeNormalizado)){
+                    mapa.set(nomeNormalizado,{nome:nomeOriginal,nomeNormalizado,
+                        empresa:colunaEmpresa>=0?String(linha[colunaEmpresa]||"").trim():"",
+                        regional:colunaRegional>=0?String(linha[colunaRegional]||"").trim():"",
+                        area:colunaArea>=0?String(linha[colunaArea]||"").trim():"",aba:nomeAba})
+                }
+            }
+        })
+        const itens=Array.from(mapa.values()).sort((a,b)=>a.nomeNormalizado.localeCompare(b.nomeNormalizado,"pt-BR"))
+        if(!itens.length){mostrarToast("Nenhum nome de técnico válido foi encontrado na planilha.","aviso","Lista não atualizada");evento.target.value="";return}
+        const base={versao:2,criterio:"nome_completo",arquivo:arquivo.name,atualizadoEm:new Date().toISOString(),total:itens.length,ignorados,abasLidas,itens}
+        const atualizadoEm=new Date().toISOString()
+        const registros=itens.map(item=>({
+            nome:item.nome||"",
+            nome_normalizado:item.nomeNormalizado||normalizarNomePreAutorizado(item.nome),
+            empresa:item.empresa||"",
+            regional:item.regional||"",
+            area:item.area||"",
+            arquivo_origem:arquivo.name,
+            atualizado_em:atualizadoEm
+        }))
+
+        const respostaBackup=await fetch(`${SUPABASE_REST_URL}/pre_autorizados?select=nome,nome_normalizado,empresa,regional,area,arquivo_origem,atualizado_em`,{headers:supabaseHeaders()})
+        const backup=respostaBackup.ok?await respostaBackup.json():[]
+
+        const limpar=await fetch(`${SUPABASE_REST_URL}/pre_autorizados?id=not.is.null`,{
+            method:"DELETE",headers:supabaseHeaders("return=minimal")
+        })
+        if(!limpar.ok) throw new Error("Não foi possível substituir a lista: "+await limpar.text())
+
+        try{
+            for(let inicio=0;inicio<registros.length;inicio+=500){
+                const resposta=await fetch(`${SUPABASE_REST_URL}/pre_autorizados`,{
+                    method:"POST",headers:supabaseHeaders("return=minimal"),
+                    body:JSON.stringify(registros.slice(inicio,inicio+500))
+                })
+                if(!resposta.ok) throw new Error(await resposta.text())
+            }
+        }catch(erroGravacao){
+            await fetch(`${SUPABASE_REST_URL}/pre_autorizados?id=not.is.null`,{method:"DELETE",headers:supabaseHeaders("return=minimal")})
+            if(backup.length){
+                await fetch(`${SUPABASE_REST_URL}/pre_autorizados`,{
+                    method:"POST",headers:supabaseHeaders("return=minimal"),body:JSON.stringify(backup)
+                })
+            }
+            throw erroGravacao
+        }
+
+        const baseSalva={...base,versao:3,atualizadoEm,total:itens.length}
+        localStorage.setItem(STORAGE_PRE_AUTORIZADOS,JSON.stringify(baseSalva))
+        atualizarResumoPreAutorizados(baseSalva)
+        mostrarToast(`${itens.length} pré-autorizado(s) salvos no Supabase. A lista agora fica disponível nos outros computadores.`,"sucesso","Lista sincronizada")
+        await atualizarIndicadoresPreAutorizadosSupabase()
+    }catch(erro){
+        console.error("Erro ao importar pré-autorizados:",erro)
+        mostrarToast("Não foi possível ler essa planilha Excel.","erro","Falha na importação")
+    }finally{if(evento?.target) evento.target.value=""}
+}
+
 function obterSessao(){
-    return JSON.parse(localStorage.getItem(AUTH_KEY) || "null")
+    try{
+        return JSON.parse(localStorage.getItem(AUTH_KEY) || "null")
+    }catch(erro){
+        console.error("Erro ao ler sessão:", erro)
+        return null
+    }
 }
 
 function salvarSessao(dados){
@@ -99,20 +380,46 @@ function sairSistema(){
 
 function atualizarDataPlantao(){
     const campo = document.getElementById("dataPlantao")
-    if(!campo){
-        return
+    if(!campo) return
+
+    const agora = new Date()
+    const dias = ["DOMINGO","SEGUNDA-FEIRA","TERÇA-FEIRA","QUARTA-FEIRA","QUINTA-FEIRA","SEXTA-FEIRA","SÁBADO"]
+    const diaSemana = dias[agora.getDay()]
+    const dia = String(agora.getDate()).padStart(2,"0")
+    const mes = String(agora.getMonth() + 1).padStart(2,"0")
+    const ano = agora.getFullYear()
+
+    campo.textContent = `▣ ${diaSemana}, ${dia}/${mes}/${ano}`
+}
+
+
+function toggleMenuUsuarioAutorizados(evento){
+    if(evento){
+        evento.preventDefault()
+        evento.stopPropagation()
     }
 
-    const hoje = new Date()
-    const data = hoje.toLocaleDateString("pt-BR", {
-        weekday:"long",
-        day:"2-digit",
-        month:"2-digit",
-        year:"numeric"
-    })
+    const menu = document.getElementById("menuUsuario")
+    if(!menu) return
 
-    campo.innerText = `📅 ${data.toUpperCase()}`
+    const aberto = menu.classList.toggle("aberto")
+
+    // Garantia adicional contra CSS antigo da página.
+    menu.style.display = aberto ? "block" : "none"
 }
+
+document.addEventListener("click", function(evento){
+    const menu = document.getElementById("menuUsuario")
+    const botao = document.getElementById("btnMenuUsuario")
+
+    if(!menu || !botao) return
+
+    if(!menu.contains(evento.target) && evento.target !== botao){
+        menu.classList.remove("aberto")
+        menu.style.display = "none"
+    }
+})
+
 
 function configurarMenuUsuario(){
     const btnMenuUsuario = document.getElementById("btnMenuUsuario")
@@ -574,6 +881,64 @@ function limparExpiradosAutomaticamente(){
     localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
 }
 
+
+function mostrarPopupOperacao(mensagem, tipo = "sucesso", titulo = ""){
+    let container = document.getElementById("toastContainerOperacao")
+
+    if(!container){
+        container = document.createElement("div")
+        container.id = "toastContainerOperacao"
+        container.className = "toast-container-operacao"
+        document.body.appendChild(container)
+    }
+
+    const mapa = {
+        carregando:["⏳","Processando"],
+        sucesso:["✅","Sucesso"],
+        erro:["❌","Erro"],
+        aviso:["⚠️","Atenção"]
+    }
+
+    const config = mapa[tipo] || mapa.sucesso
+
+    // Se estiver em carregamento, reutiliza o mesmo toast.
+    let toast = document.getElementById("toastOperacaoAtual")
+    if(!toast){
+        toast = document.createElement("div")
+        toast.id = "toastOperacaoAtual"
+        toast.className = `toast-operacao ${tipo}`
+        container.appendChild(toast)
+    }
+
+    toast.className = `toast-operacao ${tipo}`
+    toast.innerHTML = `
+        <div class="toast-operacao-icone">${config[0]}</div>
+        <div class="toast-operacao-texto">
+            <strong>${titulo || config[1]}</strong>
+            <span>${mensagem}</span>
+        </div>
+    `
+
+    toast.style.opacity = "1"
+    toast.style.transform = "translateX(0)"
+    toast.style.display = "flex"
+
+    clearTimeout(window.__wsPopupOperacaoTimer)
+
+    if(tipo !== "carregando"){
+        window.__wsPopupOperacaoTimer = setTimeout(() => {
+            toast.style.transition = "opacity .22s ease, transform .22s ease"
+            toast.style.opacity = "0"
+            toast.style.transform = "translateX(16px)"
+
+            setTimeout(() => {
+                if(toast?.isConnected) toast.remove()
+            }, 230)
+        }, 2600)
+    }
+}
+
+
 function mostrarToast(mensagem, tipo = "sucesso", titulo = ""){
     let container = document.getElementById("toastContainer")
 
@@ -584,29 +949,64 @@ function mostrarToast(mensagem, tipo = "sucesso", titulo = ""){
         document.body.appendChild(container)
     }
 
+    // Garantias de exibição independentes do CSS da página.
+    Object.assign(container.style, {
+        position:"fixed",
+        top:"14px",
+        right:"18px",
+        zIndex:"2147483647",
+        display:"grid",
+        gap:"10px",
+        width:"min(360px, calc(100vw - 32px))",
+        pointerEvents:"none",
+        visibility:"visible",
+        opacity:"1"
+    })
+
     const mapa = {
-        sucesso:["✅","Sucesso"],
-        info:["ℹ️","Informação"],
-        aviso:["⚠️","Atenção"],
-        erro:["❌","Erro"]
+        sucesso:["✅","Sucesso","#22c55e"],
+        info:["ℹ️","Informação","#38bdf8"],
+        aviso:["⚠️","Atenção","#eab308"],
+        erro:["❌","Erro","#ef4444"]
     }
 
     const config = mapa[tipo] || mapa.sucesso
     const toast = document.createElement("div")
     toast.className = `toast-msg ${tipo}`
 
+    Object.assign(toast.style, {
+        pointerEvents:"auto",
+        display:"flex",
+        alignItems:"flex-start",
+        gap:"10px",
+        padding:"13px 15px",
+        borderRadius:"14px",
+        color:"#e5e7eb",
+        background:"linear-gradient(180deg,#0f172a,#020617)",
+        border:"1px solid rgba(147,197,253,.22)",
+        borderLeft:`4px solid ${config[2]}`,
+        boxShadow:"0 20px 45px rgba(0,0,0,.38)",
+        fontSize:"12px",
+        fontWeight:"800",
+        lineHeight:"1.35",
+        visibility:"visible",
+        opacity:"1"
+    })
+
     toast.innerHTML = `
         <div class="toast-icone">${config[0]}</div>
         <div>
-            <strong>${titulo || config[1]}</strong>
-            <span>${mensagem}</span>
+            <strong style="display:block;color:#fff;font-size:12px;margin-bottom:2px">${titulo || config[1]}</strong>
+            <span style="display:block;color:#cbd5e1;font-weight:700">${mensagem}</span>
         </div>
     `
 
     container.appendChild(toast)
 
     setTimeout(() => {
-        toast.style.animation = "toastSaida .22s ease-in forwards"
+        toast.style.opacity = "0"
+        toast.style.transform = "translateX(18px)"
+        toast.style.transition = "opacity .22s ease, transform .22s ease"
         setTimeout(() => toast.remove(), 230)
     }, 2800)
 }
@@ -696,18 +1096,7 @@ function importarBase(){
 }
 
 function limparBase(){
-    if(!confirm("Deseja limpar toda a base de autorizados?")){
-        return
-    }
-
-    baseAutorizados = []
-    supabaseLimparAutorizados()
-    document.getElementById("listaBrutaAutorizados").value = ""
-    document.getElementById("buscaAutorizado").value = ""
-    document.getElementById("listaResultados").innerHTML = ""
-    document.getElementById("resultadoInfo").innerText = "Base limpa. Cole uma nova lista para importar."
-    document.getElementById("previewTeams").style.display = "none"
-    atualizarResumo()
+    mostrarToast("A base não pode ser apagada. Para atualizar, envie a nova planilha mensal.", "aviso", "Ação bloqueada")
 }
 
 function pesquisarAutorizados(){
@@ -744,13 +1133,16 @@ function pesquisarAutorizados(){
         card.className = "card-autorizado"
 
         const expiraNoDia = expiraHoje(item)
-        const statusBase = expiraNoDia ? "expira_hoje" : (item.statusBase === "aguardando" ? "aguardando" : "autorizado")
-        const textoStatus = expiraNoDia ? "EXPIRA HOJE" : (statusBase === "aguardando" ? "AGUARDANDO LIBERAÇÃO" : "AUTORIZADO")
-        const classeStatus = expiraNoDia ? "status-expira-hoje" : (statusBase === "aguardando" ? "status-aguardando" : "status-autorizado")
-        const textoBotaoStatus = statusBase === "aguardando" ? "→ AUTORIZADO" : "→ AGUARDANDO"
+        const statusRealItem = String(item.statusBase || item.status_base || "autorizado").trim().toLowerCase()
+        const textoStatus = statusRealItem === "aguardando" ? "AGUARDANDO LIBERAÇÃO" : "AUTORIZADO"
+        const classeStatus = statusRealItem === "aguardando" ? "status-aguardando" : "status-autorizado"
+        const textoBotaoStatus = statusRealItem === "aguardando" ? "→ AUTORIZADO" : "→ AGUARDANDO"
 
         card.innerHTML = `
-            <span class="status-base ${classeStatus}">${textoStatus}</span>
+            <div class="status-card-linha">
+                <span class="status-base ${classeStatus}">${textoStatus}</span>
+                ${expiraNoDia ? `<span class="status-base status-expira-hoje">EXPIRA HOJE</span>` : ""}
+            </div>
             <h3>${item.tecnico}</h3>
             <div class="meta">
                 <div><strong>SITE:</strong> ${item.site}</div>
@@ -759,9 +1151,10 @@ function pesquisarAutorizados(){
                 ${item.acao ? `<div><strong>AÇÃO:</strong> ${item.acao}</div>` : ""}
             </div>
             <div class="card-botoes-autorizado">
-                <button onclick="gerarAcessoAutorizadoPelaChave('${chaveBase(item)}')">➕ GERAR</button>
+                <button type="button" onclick="gerarAcessoAutorizadoPelaChave('${chaveBase(item)}', this)">➕ GERAR</button>
                 <button class="btn-status-base" onclick="alternarStatusBase('${chaveBase(item)}')">${textoBotaoStatus}</button>
-                <button class="btn-limpar" onclick="removerAutorizado('${chaveBase(item)}')">REMOVER</button>
+                <button class="btn-glpi-autorizado" title="Ir para o chamado no GLPI" aria-label="Ir para o chamado no GLPI" onclick="abrirChamadoGLPIAutorizados('${item.ticket}')">↗</button>
+                <button class="btn-limpar" title="Remover" aria-label="Remover" onclick="removerAutorizado('${chaveBase(item)}')">×</button>
             </div>
         `
 
@@ -769,10 +1162,58 @@ function pesquisarAutorizados(){
     })
 }
 
-function gerarAcessoAutorizadoPelaChave(chave){
+
+function abrirChamadoGLPIAutorizados(ticket){
+    const numero = String(ticket || "").replace(/\D/g,"")
+    if(!numero){
+        mostrarToast("Ticket inválido.", "aviso", "GLPI")
+        return
+    }
+
+    const url = `https://glpimecs.grupomoura.com/front/ticket.form.php?id=${numero}`
+    window.open(url, "_blank", "noopener,noreferrer")
+}
+
+async function gerarAcessoAutorizadoPelaChave(chave, botao = null){
     const item = baseAutorizados.find(x => chaveBase(x) === chave)
-    if(item){
-        gerarAcessoAutorizado(item)
+
+    if(!item){
+        mostrarPopupOperacao("Não foi possível localizar esse autorizado.", "erro")
+        return
+    }
+
+    const textoOriginal = botao?.innerHTML || ""
+
+    if(botao){
+        botao.disabled = true
+        botao.innerHTML = "⏳ GERANDO..."
+    }
+
+    // O aviso é disparado imediatamente no clique.
+    mostrarPopupOperacao(`Gerando acesso de ${item.tecnico}...`, "carregando")
+
+    try{
+        const resultado = await gerarAcessoAutorizado(item)
+
+        if(resultado === false){
+            const toast = document.getElementById("toastOperacaoAtual")
+            if(toast) toast.remove()
+            return
+        }
+
+        mostrarPopupOperacao("Acesso gerado com sucesso.", "sucesso", "Sucesso")
+    }catch(erro){
+        console.error("Erro ao gerar acesso autorizado:", erro)
+        mostrarPopupOperacao(
+            erro?.message ? `Não foi possível gerar o acesso: ${erro.message}` : "Não foi possível gerar o acesso.",
+            "erro",
+            "Erro"
+        )
+    }finally{
+        if(botao){
+            botao.disabled = false
+            botao.innerHTML = textoOriginal || "➕ GERAR"
+        }
     }
 }
 
@@ -782,7 +1223,7 @@ async function gerarAcessoAutorizado(item){
     const existente = acessos.find(acesso => mesmoAcessoNatural(acesso, item))
 
     if(existente && !confirm("Esse acesso já existe no Kanban. Deseja atualizar e trazer para o topo?")){
-        return
+        return false
     }
 
     const agoraIso = dataISOAgora()
@@ -815,44 +1256,77 @@ async function gerarAcessoAutorizado(item){
     acessos.unshift(acessoNovo)
 
     localStorage.setItem(STORAGE_ACESSOS, JSON.stringify(acessos))
-    mostrarToast("Acesso gerado com sucesso.")
+    return true
 }
 
 
 
+
+async function comTimeout(promise, ms = 8000, mensagem = "Tempo excedido ao comunicar com o Supabase."){
+    let timer
+
+    try{
+        return await Promise.race([
+            promise,
+            new Promise((_, reject) => {
+                timer = setTimeout(() => reject(new Error(mensagem)), ms)
+            })
+        ])
+    }finally{
+        clearTimeout(timer)
+    }
+}
+
 async function alternarStatusBase(chave){
     const item = baseAutorizados.find(x => chaveBase(x) === chave)
-    if(!item) return
 
+    if(!item){
+        mostrarPopupOperacao("Não foi possível localizar esse autorizado.", "erro", "Erro")
+        return
+    }
+
+    const statusAnterior = item.statusBase || "autorizado"
+    const novoStatus = statusAnterior === "aguardando" ? "autorizado" : "aguardando"
     const agoraIso = dataISOAgora()
 
-    item.statusBase = item.statusBase === "aguardando" ? "autorizado" : "aguardando"
+    // Troca imediatamente o status na base da tela.
+    item.statusBase = novoStatus
     item.atualizadoEm = agoraIso
     item.dataUltimoMovimento = agoraIso
 
-    let acessos = JSON.parse(localStorage.getItem(STORAGE_ACESSOS) || "[]")
-    acessos = acessos.map(acesso => {
-        if(mesmoAcessoNatural(acesso, item)){
-            acesso.status = item.statusBase === "aguardando" ? "aguardando" : "liberado"
-            acesso.ordemColuna = Date.now()
-            acesso.dataUltimoMovimento = agoraIso
-            acesso.atualizadoEm = agoraIso
-        }
-
-        return acesso
-    })
-
-    localStorage.setItem(STORAGE_ACESSOS, JSON.stringify(acessos))
-    await supabaseAtualizarAcessoPorBase(item)
-    await registrarHistoricoAcesso({
-        ...item,
-        status:item.statusBase === "aguardando" ? "aguardando" : "liberado"
-    }, item.statusBase === "aguardando" ? "aguardando" : "liberado", "status_autorizados")
-    await supabaseSalvarBaseAutorizados()
-
+    // Salva localmente e redesenha imediatamente.
+    localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
     atualizarResumo()
     pesquisarAutorizados()
-    mostrarToast("Status atualizado com sucesso.")
+
+    try{
+        // Persiste SOMENTE o pré-autorizado alterado.
+        await supabaseSalvarAutorizadoItem(item)
+
+        mostrarPopupOperacao(
+            novoStatus === "autorizado"
+                ? "Alterado para Autorizado."
+                : "Alterado para Aguardando Liberação.",
+            "sucesso",
+            "Sucesso"
+        )
+    }catch(erro){
+        console.error("Erro ao salvar status do pré-autorizado:", erro)
+
+        // Reverte para não mostrar um estado que não foi salvo.
+        item.statusBase = statusAnterior
+        localStorage.setItem(STORAGE_BASE, JSON.stringify(baseAutorizados))
+        atualizarResumo()
+        pesquisarAutorizados()
+
+        mostrarPopupOperacao(
+            erro?.message
+                ? `Não foi possível alterar o status: ${erro.message}`
+                : "Não foi possível alterar o status.",
+            "erro",
+            "Erro"
+        )
+    }
 }
 
 
@@ -876,7 +1350,7 @@ async function removerAutorizado(chave){
 
     atualizarResumo()
     pesquisarAutorizados()
-    mostrarToast("Registro removido da base.")
+    mostrarPopupOperacao("Registro removido da base.", "sucesso")
 }
 
 
@@ -976,6 +1450,37 @@ function montarTabelaTeams(tipo){
 
 let painelTeamsAberto = null
 
+
+function abrirFormularioTeams(tipo = null){
+    const modal = document.getElementById("modalTeams")
+    if(!modal) return
+
+    // Se ainda não houver uma lista gerada, abre TOTAL por padrão.
+    if(tipo){
+        painelTeamsAberto = tipo
+        gerarTabelaTeams(tipo)
+    }else{
+        const preview = document.getElementById("previewTeams")
+        if(!preview || !preview.innerHTML.trim()){
+            painelTeamsAberto = "total"
+            gerarTabelaTeams("total")
+        }
+    }
+
+    modal.classList.add("aberto")
+    modal.setAttribute("aria-hidden","false")
+    document.body.classList.add("modal-aberto")
+}
+
+function fecharFormularioTeams(){
+    const modal = document.getElementById("modalTeams")
+    if(!modal) return
+
+    modal.classList.remove("aberto")
+    modal.setAttribute("aria-hidden","true")
+    document.body.classList.remove("modal-aberto")
+}
+
 function limparPainelTeams(){
     painelTeamsAberto = null
 
@@ -989,16 +1494,14 @@ function limparPainelTeams(){
         preview.style.display = "none"
     }
     if(info) info.innerText = "Digite para pesquisar. Nenhum resultado é exibido antes da busca."
+
+    fecharFormularioTeams()
 }
 
 function toggleTabelaTeams(tipo){
-    if(painelTeamsAberto === tipo){
-        limparPainelTeams()
-        return
-    }
-
     painelTeamsAberto = tipo
     gerarTabelaTeams(tipo)
+    abrirFormularioTeams()
 }
 
 
@@ -1007,7 +1510,10 @@ function gerarTabelaTeams(tipo){
     const preview = document.getElementById("previewTeams")
 
     preview.innerHTML = `
-        <button class="btn-copiar-preview" onclick="copiarPreviewTeams()">📋 COPIAR PARA TEAMS</button>
+        <div class="acoes-preview-teams">
+            <button class="btn-copiar-preview" onclick="copiarPreviewTeams()">COPIAR PARA TEAMS</button>
+            <button class="btn-fechar-preview-teams" title="Fechar tabela" aria-label="Fechar tabela" onclick="fecharFormularioTeams()">×</button>
+        </div>
         ${html}
     `
     preview.style.display = "block"
@@ -1172,6 +1678,13 @@ window.addEventListener("DOMContentLoaded", async () => {
     configurarMenuUsuario()
     atualizarDataPlantao()
     limparHistoricoAntigo()
+
+    try{
+        await atualizarIndicadoresPreAutorizadosSupabase()
+    }catch(erro){
+        console.error("Erro ao atualizar indicadores de pré-autorizados:", erro)
+    }
+
     carregarTela()
 })
 
@@ -1183,3 +1696,34 @@ async function atualizarAutorizadosAutomaticamente(){
 }
 
 setInterval(atualizarAutorizadosAutomaticamente, 5000)
+
+
+document.addEventListener("click", evento => {
+    const modalTeams = document.getElementById("modalTeams")
+    if(modalTeams && evento.target === modalTeams){
+        fecharFormularioTeams()
+    }
+})
+
+
+/* WESAFER_DATA_AUTORIZADOS_FIX_V2
+   Inicialização independente: não depende do restante da página. */
+(function(){
+    function iniciarDataAutorizados(){
+        try{
+            atualizarDataPlantao()
+        }catch(erro){
+            console.error("Falha ao atualizar data em Autorizados:", erro)
+        }
+    }
+
+    if(document.readyState === "loading"){
+        document.addEventListener("DOMContentLoaded", iniciarDataAutorizados, {once:true})
+    }else{
+        iniciarDataAutorizados()
+    }
+
+    // Segunda tentativa após load para proteger contra renderizações tardias.
+    window.addEventListener("load", iniciarDataAutorizados, {once:true})
+})()
+

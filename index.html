@@ -15,32 +15,31 @@
 
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="css/acessos.css?v=2.5.4">
+    <link rel="stylesheet" href="css/sidebar.css?v=1.0">
+<link rel="stylesheet" href="css/responsive.css?v=1.0">
 </head>
 
 <body>
 
 <div class="layout-sistema">
 
-<aside class="sidebar">
-    <div class="sidebar-logo">
-        <img src="assets/img/wesafer.png" alt="WE SAFER">
+<aside class="sidebar ws-sidebar">
+    <div class="sidebar-logo ws-sidebar-logo">
+        <img class="logo-coruja" src="assets/img/wesafer-owl.png" alt="WE SAFER">
+        <img class="logo-completa" src="assets/img/wesafer.png" alt="WE SAFER">
     </div>
 
+    <nav class="sidebar-menu ws-sidebar-menu">
+        <a href="index.html" class="ativo" title="Acessos">
+            <span class="menu-icon">🚪</span>
+            <span class="menu-text">ACESSOS</span>
+        </a>
 
-
-<nav class="sidebar-menu">
-
-<a href="index.html" class="ativo">
-<span class="menu-icon">🚪</span><span class="menu-text">ACESSOS</span>
-</a>
-
-<a href="autorizados.html" >
-<span class="menu-icon">👷</span><span class="menu-text">AUTORIZADOS</span>
-</a>
-
-</nav>
-
-
+        <a href="autorizados.html" title="Autorizados">
+            <span class="menu-icon">👷</span>
+            <span class="menu-text">AUTORIZADOS</span>
+        </a>
+    </nav>
 </aside>
 
 <div class="conteudo-sistema">
@@ -55,6 +54,11 @@
             🚪 MOURA - OPERACIONAL DE ACESSOS
         </div>
 <div id="dataPlantao" class="data-plantao"></div>
+        <div class="atalhos-respostas-topo" aria-label="Respostas rápidas">
+            <button type="button" onclick="copiarRespostaPadrao('acesso')" title="Copiar texto de acesso liberado">✓ LIBERADO</button>
+            <button type="button" onclick="copiarRespostaPadrao('fechamento')" title="Copiar texto de fechamento">✓ FECHAMENTO</button>
+            <button type="button" onclick="copiarRespostaPadrao('formulario')" title="Copiar formulário">▤ FORMULÁRIO</button>
+        </div>
 
     </div>
 
@@ -68,6 +72,7 @@
 
         <div id="menuUsuario" class="dropdown-usuario">
             <div class="usuario-info">WESAFER TOOLS</div>
+            <button class="menu-encerrar-plantao" onclick="confirmarEncerrarPlantao()">◷ Encerrar plantão</button>
             <button onclick="sairSistema()">🚪 Sair</button>
         </div>
     </div>
@@ -76,38 +81,23 @@
 
 <main class="area">
 
-<div class="controle-toolbar">
-    <div class="resumo-operacional k-aguardando">
-        <span>AGUARDANDO LIBERAÇÃO</span>
-        <strong id="qtdAguardando">0</strong>
-    </div>
-
-    <div class="resumo-operacional k-liberado">
-        <span>LIBERADO</span>
-        <strong id="qtdLiberado">0</strong>
-    </div>
-
-    <div class="resumo-operacional k-entrada">
-        <span>ENTRADA</span>
-        <strong id="qtdEntrada">0</strong>
-    </div>
-
-    <div class="resumo-operacional k-saida">
-        <span>SAÍDA</span>
-        <strong id="qtdSaida">0</strong>
+<div class="faixa-operacional-unica">
+<div class="controle-toolbar topo-metricas-moderno">
+    <div class="resumo-operacional k-aguardando"><span>● &nbsp; AGUARDANDO LIBERAÇÃO</span><strong id="qtdAguardando">0</strong><small id="subAguardando">Aguardando liberação</small></div>
+    <div class="resumo-operacional k-liberado"><span>● &nbsp; LIBERADO</span><strong id="qtdLiberado">0</strong><small>Prontos para entrada</small></div>
+    <div class="resumo-operacional k-entrada"><span>● &nbsp; ENTRADA</span><strong id="qtdEntrada">0</strong><small>Em atendimento agora</small></div>
+    <div class="resumo-operacional k-saida"><span>● &nbsp; SAÍDA</span><strong id="qtdSaida">0</strong><small>Finalizados</small></div>
+</div>
+<div class="busca-barra busca-moderna-v2">
+    <div class="busca-campo-wrap"><span class="busca-icone">⌕</span><input id="busca" placeholder="Pesquisar por técnico, site, ticket, solicitante ou empresa..." oninput="renderizar()"></div>
+        <div class="busca-acoes-v2">
+        <button class="btn-novo-v2" onclick="abrirFormatador()">＋ &nbsp; NOVO ACESSO</button>
+        <button class="btn-exportar-dia btn-exportar-v2" onclick="abrirModalExportacao()">▤ &nbsp; EXPORTAR RELATÓRIO</button>
+        <button class="btn-anotacoes-v2" onclick="abrirAnotacoes()">▤ &nbsp; ANOTAÇÕES</button>
+        <button class="btn-cinza btn-modo-v2" onclick="alternarCompacto()"><small>MODO</small><strong>COMPACTO <span class="modo-seta">⌄</span></strong></button>
     </div>
 </div>
-
-
-<div class="respostas-padrao">
-
-    <button onclick="copiarRespostaPadrao('acesso')">📢 ACESSO LIBERADO</button>
-    <button onclick="copiarRespostaPadrao('fechamento')">🎥 FECHAMENTO</button>
-    <button onclick="copiarRespostaPadrao('formulario')">📝 FORMULÁRIO</button>
-    <button onclick="abrirAnotacoes()">📋 ANOTAÇÕES</button>
-
 </div>
-
 
 <div id="painelAnotacoes" class="painel-anotacoes">
 
@@ -136,16 +126,8 @@
 </div>
 
 
-<div class="busca-barra">
-    <input id="busca" placeholder="🔎 Pesquisar por técnico, site, ticket, solicitante ou empresa..." oninput="renderizar()">
-    <button onclick="abrirFormatador()">NOVO ACESSO</button>
-    <button class="btn-exportar-dia" onclick="abrirModalExportacao()">📊 EXPORTAR RELATÓRIO</button>
-    <button class="btn-cinza" onclick="alternarCompacto()">MODO COMPACTO</button>
-
-</div>
-
-<details id="boxFormatador" class="formatador-acesso">
-    <summary>⚡ FORMATADOR + CRIAÇÃO DE CARTÃO</summary>
+<div id="boxFormatador" class="formatador-acesso" aria-hidden="true">
+    <div class="popup-novo-acesso">
     <div class="topo-formatador-modal">
         <div>
             <h2>➕ NOVO ACESSO</h2>
@@ -164,12 +146,23 @@
 
         <div class="campo">
             <label for="tecnico">TÉCNICO</label>
-            <input id="tecnico" placeholder="LEONARDO DINIZ">
+            <input id="tecnico" placeholder="LEONARDO DINIZ" oninput="atualizarStatusPreAutorizado()">
+        </div>
+<div class="campo campo-full">
+            <div class="bloco-preautorizado-novo-acesso">
+                <div id="statusPreAutorizado" class="status-preautorizado status-pre-neutro">
+                    Informe o nome completo do técnico para verificar a lista mensal.
+                </div>
+                <label id="opcaoAbrirAutorizado" class="opcao-abrir-autorizado desabilitada">
+                    <input type="checkbox" id="abrirComoAutorizado" disabled>
+                    ABRIR COMO AUTORIZADO
+                </label>
+            </div>
         </div>
 
         <div class="campo">
             <label for="site">SITE</label>
-            <input id="site" placeholder="MGPGE">
+            <input id="site" maxlength="5" placeholder="MGPGE" oninput="this.value=this.value.slice(0,5)">
         </div>
 
         <div class="campo">
@@ -184,12 +177,12 @@
 
         <div class="campo">
             <label for="empresa">EMPRESA</label>
-            <input id="empresa" placeholder="VIVO">
+            <input id="empresa" maxlength="20" placeholder="VIVO" oninput="this.value=this.value.slice(0,20)">
         </div>
 
         <div class="campo">
             <label for="periodo">PERÍODO</label>
-            <input id="periodo" placeholder="22/06 À 22/07">
+            <input id="periodo" placeholder="22/06 À 07/07" onblur="validarPeriodoCampo()">
         </div>
 
         <div class="revisao-acesso">
@@ -229,18 +222,20 @@
 
     </div>
 
-    <div class="acoes-formatador">
-        <button onclick="extrairChamado()">EXTRAIR DADOS</button>
-        <button class="btn-copiar" onclick="adicionarCartao()">ADICIONAR CARTÃO</button>
-        <button class="btn-limpar" onclick="limparFormulario()">LIMPAR FORMULÁRIO</button>
-        <button class="btn-cinza" onclick="limparPlantao()">LIMPAR PLANTÃO</button>
-        <button class="btn-cinza" onclick="fecharFormatador()">✕ FECHAR</button>
+    <div class="acoes-formatador acoes-formatador-v5">
+        <div class="acoes-formatador-principais">
+            <button class="btn-extrair-v5" onclick="extrairChamado()">EXTRAIR</button>
+            <button class="btn-adicionar-v5" onclick="adicionarCartao()">ADICIONAR</button>
+            <button class="btn-limpar-v5" onclick="limparFormulario()">LIMPAR</button>
+        </div>
+        <button class="btn-fechar-v5" onclick="fecharFormatador()">FECHAR</button>
     </div>
 
     <p class="mini-info">
         Dica: depois de extrair, revise os campos antes de adicionar. Se algum dado vier errado, edite manualmente.
     </p>
-</details>
+</div>
+</div>
 
 <div class="kanban-board">
 
@@ -303,7 +298,7 @@
         </div>
 
         <div class="acoes-exportacao">
-            <button class="btn-cinza" onclick="fecharModalExportacao()">CANCELAR</button>
+            <button class="btn-cinza btn-cancelar-exportacao" onclick="fecharModalExportacao()">CANCELAR</button>
             <button class="btn-exportar-dia" onclick="exportarRelatorioPeriodo()">EXPORTAR</button>
         </div>
 

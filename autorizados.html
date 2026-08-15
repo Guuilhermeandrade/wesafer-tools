@@ -14,28 +14,32 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="css/autorizados.css?v=2.5.4">
+    <link rel="stylesheet" href="css/sidebar.css?v=1.0">
+    <link rel="stylesheet" href="css/sidebar-autorizados-exata.css?v=1.0">
+<link rel="stylesheet" href="css/responsive.css?v=1.0">
 </head>
 
 <body>
 
 <div class="layout-sistema">
 
-<aside class="sidebar">
-    <div class="sidebar-logo">
-        <img src="assets/img/wesafer.png" alt="WE SAFER">
+<aside class="sidebar ws-sidebar">
+    <div class="sidebar-logo ws-sidebar-logo">
+        <img class="logo-coruja" src="assets/img/wesafer-owl.png" alt="WE SAFER">
+        <img class="logo-completa" src="assets/img/wesafer.png" alt="WE SAFER">
     </div>
 
-<nav class="sidebar-menu">
+    <nav class="sidebar-menu ws-sidebar-menu">
+        <a href="index.html" title="Acessos">
+            <span class="menu-icon">🚪</span>
+            <span class="menu-text">ACESSOS</span>
+        </a>
 
-<a href="index.html">
-<span class="menu-icon">🚪</span><span class="menu-text">ACESSOS</span>
-</a>
-
-<a href="autorizados.html" class="ativo">
-<span class="menu-icon">👷</span><span class="menu-text">AUTORIZADOS</span>
-</a>
-
-</nav>
+        <a href="autorizados.html" class="ativo" title="Autorizados">
+            <span class="menu-icon">👷</span>
+            <span class="menu-text">AUTORIZADOS</span>
+        </a>
+    </nav>
 </aside>
 
 <div class="conteudo-sistema">
@@ -43,8 +47,31 @@
 
 <header class="topo topo-sistema">
     <div class="topo-info">
-        <div class="badge">👷TÉCNICOS AUTORIZADOS</div>
-        <div id="dataPlantao" class="data-plantao"></div>
+        <div class="badge">👷 TÉCNICOS AUTORIZADOS</div>
+        <div id="dataPlantao" class="data-plantao">CARREGANDO DATA...</div>
+        <script>
+        (function(){
+            var campo = document.getElementById("dataPlantao");
+            if(!campo) return;
+
+            var agora = new Date();
+            var dias = [
+                "DOMINGO",
+                "SEGUNDA-FEIRA",
+                "TERÇA-FEIRA",
+                "QUARTA-FEIRA",
+                "QUINTA-FEIRA",
+                "SEXTA-FEIRA",
+                "SÁBADO"
+            ];
+
+            var dia = String(agora.getDate()).padStart(2,"0");
+            var mes = String(agora.getMonth()+1).padStart(2,"0");
+            var ano = agora.getFullYear();
+
+            campo.textContent = "📅 " + dias[agora.getDay()] + ", " + dia + "/" + mes + "/" + ano;
+        })();
+        </script>
 </div>
 
     <div class="topo-logo">
@@ -52,7 +79,7 @@
     </div>
 
     <div class="menu-usuario">
-        <button id="btnMenuUsuario" class="btn-menu-usuario" title="Menu do usuário">⋯</button>
+        <button id="btnMenuUsuario" class="btn-menu-usuario" type="button" title="Menu do usuário" onclick="toggleMenuUsuarioAutorizados(event)">⋯</button>
 
         <div id="menuUsuario" class="dropdown-usuario">
             <div class="usuario-info">WESAFER TOOLS</div>
@@ -66,29 +93,22 @@
 
 <div class="area-autorizados">
 
-    <details class="importador-discreto"><summary>📥 IMPORTAR BASE</summary><section class="painel-autorizados">
-        <h2>📥 IMPORTAR BASE</h2>
-        <p>
-            Cole a lista no padrão:<br>
-            NOME DO TÉCNICO - SITE: TICKET DD/MM À DD/MM
-        </p>
+    <section class="painel-preautorizados painel-preautorizados-simples">
+        <div class="preautorizados-simples-conteudo">
+            <div>
+                <h2>✓ PRÉ-AUTORIZADOS DE OPERAÇÃO</h2>
+                <p>Atualize a lista mensal de técnicos pré-autorizados.</p>
+            </div>
 
-        <textarea id="listaBrutaAutorizados" placeholder="Exemplo:
-LEONARDO DINIZ - MGPGE: 14216 22/06 À 22/07
-CRISTIANO CALIXTO - SPEJM: 14219 23/06 À 30/06"></textarea>
-
-        <div class="botoes">
-            <button onclick="importarBase()">💾 SALVAR BASE</button>
-            <button class="btn-limpar" onclick="limparBase()">LIMPAR BASE</button>
+            <div class="preautorizados-acoes">
+                <input id="arquivoPreAutorizados" type="file" accept=".xlsx,.xls" hidden onchange="importarPlanilhaPreAutorizados(event)">
+                <button type="button" class="btn-atualizar-preautorizados" onclick="document.getElementById('arquivoPreAutorizados').click()">↑ ATUALIZAR LISTA</button>
+            </div>
         </div>
-
-        <p class="mini-info">
-            A base fica salva no navegador. Registros vencidos antes de hoje são removidos automaticamente quando a tela abre.
-        </p>
-    </section></details>
+    </section>
 
     <section class="painel-autorizados">
-        <h2>🔍 PESQUISAR AUTORIZADO</h2>
+        <h2>PESQUISAR AUTORIZADO</h2>
 
         <div class="resumo-base">
             <button class="mini-card card-total-base" onclick="toggleTabelaTeams('total')">
@@ -109,7 +129,8 @@ CRISTIANO CALIXTO - SPEJM: 14219 23/06 À 30/06"></textarea>
 
         <div class="busca-autorizados">
             <input id="buscaAutorizado" placeholder="Pesquisar técnico, site ou ticket..." oninput="pesquisarAutorizados()">
-            <button onclick="pesquisarAutorizados()">BUSCAR</button>
+            <button class="btn-buscar-autorizado" onclick="pesquisarAutorizados()">BUSCAR</button>
+            <button class="btn-formulario-teams" onclick="abrirFormularioTeams()" title="Abrir formulário para Teams">▤ TEAMS</button>
         </div>
 
         <div class="bloco-pesquisa-resultados">
@@ -120,10 +141,7 @@ CRISTIANO CALIXTO - SPEJM: 14219 23/06 À 30/06"></textarea>
             <div id="listaResultados" class="lista-autorizados"></div>
         </div>
 
-        <div class="bloco-teams-gerado">
-            <div class="titulo-bloco-teams">📋 FORMULÁRIO GERADO PARA TEAMS</div>
-            <div id="previewTeams" class="preview-teams"></div>
-        </div>
+
     </section>
 
 </div>
@@ -136,7 +154,22 @@ CRISTIANO CALIXTO - SPEJM: 14219 23/06 À 30/06"></textarea>
 </div>
 </div>
 
+
+<div id="modalTeams" class="modal-teams" aria-hidden="true">
+    <section class="modal-teams-card" role="dialog" aria-modal="true" aria-labelledby="tituloModalTeams">
+        <header class="modal-teams-topo">
+            <div>
+                <h2 id="tituloModalTeams">📋 FORMULÁRIO PARA TEAMS</h2>
+                <p>Visualize e copie a lista gerada.</p>
+            </div>
+            <button class="btn-fechar-modal-teams" onclick="fecharFormularioTeams()" title="Fechar" aria-label="Fechar">×</button>
+        </header>
+        <div id="previewTeams" class="preview-teams"></div>
+    </section>
+</div>
+
 <script src="js/config/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="js/pages/autorizados.js"></script>
 
 </body>

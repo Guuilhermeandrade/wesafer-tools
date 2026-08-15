@@ -11,8 +11,24 @@ const SUPABASE_HEADERS = {
 };
 
 function supabaseHeaders(prefer = ""){
-    const headers = {...SUPABASE_HEADERS};
-    if(prefer){ headers["Prefer"] = prefer; }
+    const headers = {
+        "apikey": SUPABASE_KEY,
+        "Content-Type": "application/json"
+    };
+
+    try{
+        const sessao = JSON.parse(localStorage.getItem("wesaferAuth") || "null");
+        const accessToken = sessao?.access_token;
+
+        headers["Authorization"] = `Bearer ${accessToken || SUPABASE_KEY}`;
+    }catch(erro){
+        headers["Authorization"] = `Bearer ${SUPABASE_KEY}`;
+    }
+
+    if(prefer){
+        headers["Prefer"] = prefer;
+    }
+
     return headers;
 }
 

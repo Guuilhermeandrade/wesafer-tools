@@ -1,0 +1,225 @@
+
+/* =========================================================
+   WESAFER TOOLS — SIDEBAR ÚNICA E ISOLADA
+   Carregada por último em Acessos e Autorizados.
+   ========================================================= */
+
+:root{
+    --ws-side-closed:58px;
+    --ws-side-open:220px;
+    --ws-side-bg:#0f172a;
+    --ws-side-item:42px;
+}
+
+/* estrutura */
+html body .ws-sidebar{
+    position:fixed !important;
+    inset:0 auto 0 0 !important;
+    width:var(--ws-side-closed) !important;
+    min-width:var(--ws-side-closed) !important;
+    max-width:var(--ws-side-closed) !important;
+    height:100vh !important;
+    padding:0 !important;
+    margin:0 !important;
+    box-sizing:border-box !important;
+    overflow:hidden !important;
+    background:var(--ws-side-bg) !important;
+    border-right:1px solid rgba(148,163,184,.10) !important;
+    z-index:9999 !important;
+    box-shadow:none !important;
+    transition:
+        width .22s ease,
+        min-width .22s ease,
+        max-width .22s ease,
+        box-shadow .22s ease !important;
+}
+
+html body .ws-sidebar:hover{
+    width:var(--ws-side-open) !important;
+    min-width:var(--ws-side-open) !important;
+    max-width:var(--ws-side-open) !important;
+    box-shadow:16px 0 38px rgba(0,0,0,.25) !important;
+}
+
+/* o conteúdo nunca se move */
+html body .ws-sidebar ~ .conteudo-sistema,
+html body .ws-sidebar:hover ~ .conteudo-sistema{
+    margin-left:var(--ws-side-closed) !important;
+    width:calc(100vw - var(--ws-side-closed)) !important;
+}
+
+/* logo */
+html body .ws-sidebar-logo{
+    width:100% !important;
+    height:74px !important;
+    min-height:74px !important;
+    max-height:74px !important;
+    padding:0 !important;
+    margin:0 0 6px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    overflow:hidden !important;
+    box-sizing:border-box !important;
+}
+
+html body .ws-sidebar-logo img{
+    position:static !important;
+    transform:none !important;
+    object-fit:contain !important;
+    margin:0 !important;
+    padding:0 !important;
+    filter:none !important;
+}
+
+html body .ws-sidebar-logo .logo-coruja{
+    display:block !important;
+    width:30px !important;
+    min-width:30px !important;
+    max-width:30px !important;
+    height:auto !important;
+    opacity:.82 !important;
+}
+
+html body .ws-sidebar-logo .logo-completa{
+    display:none !important;
+    width:118px !important;
+    min-width:118px !important;
+    max-width:118px !important;
+    height:auto !important;
+    opacity:.82 !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-logo{
+    height:94px !important;
+    min-height:94px !important;
+    max-height:94px !important;
+    justify-content:flex-start !important;
+    padding-left:28px !important;
+    margin-bottom:8px !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-logo .logo-coruja{
+    display:none !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-logo .logo-completa{
+    display:block !important;
+}
+
+/* menu fechado: só ícones */
+html body .ws-sidebar-menu{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    width:100% !important;
+    gap:10px !important;
+    margin:0 !important;
+    padding:0 !important;
+    box-sizing:border-box !important;
+}
+
+html body .ws-sidebar-menu a{
+    width:var(--ws-side-item) !important;
+    min-width:var(--ws-side-item) !important;
+    max-width:var(--ws-side-item) !important;
+    height:var(--ws-side-item) !important;
+    min-height:var(--ws-side-item) !important;
+    max-height:var(--ws-side-item) !important;
+    margin:0 !important;
+    padding:0 !important;
+    box-sizing:border-box !important;
+    border-radius:12px !important;
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:0 !important;
+    overflow:hidden !important;
+    text-decoration:none !important;
+    color:#cbd5e1 !important;
+    background:transparent !important;
+    border:1px solid transparent !important;
+    box-shadow:none !important;
+}
+
+html body .ws-sidebar-menu .menu-icon{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    flex:0 0 22px !important;
+    width:22px !important;
+    min-width:22px !important;
+    max-width:22px !important;
+    font-size:17px !important;
+    line-height:1 !important;
+    margin:0 !important;
+    padding:0 !important;
+}
+
+html body .ws-sidebar-menu .menu-text{
+    display:none !important;
+    visibility:hidden !important;
+    opacity:0 !important;
+    width:0 !important;
+    min-width:0 !important;
+    max-width:0 !important;
+    overflow:hidden !important;
+    margin:0 !important;
+    padding:0 !important;
+}
+
+/* aberto: ícone + nome */
+html body .ws-sidebar:hover .ws-sidebar-menu{
+    align-items:stretch !important;
+    gap:12px !important;
+    padding:0 14px !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-menu a{
+    width:100% !important;
+    min-width:100% !important;
+    max-width:100% !important;
+    height:48px !important;
+    min-height:48px !important;
+    max-height:48px !important;
+    padding:0 16px !important;
+    justify-content:flex-start !important;
+    gap:13px !important;
+    border-radius:13px !important;
+}
+
+html body .ws-sidebar:hover .ws-sidebar-menu .menu-text{
+    display:block !important;
+    visibility:visible !important;
+    opacity:1 !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    overflow:visible !important;
+    white-space:nowrap !important;
+    color:#f8fafc !important;
+    font-size:12px !important;
+    font-weight:800 !important;
+    line-height:1 !important;
+}
+
+/* ativo */
+html body .ws-sidebar-menu a.ativo{
+    background:rgba(37,99,235,.23) !important;
+    border-color:rgba(96,165,250,.30) !important;
+    color:#fff !important;
+}
+
+html body .ws-sidebar-menu a::before,
+html body .ws-sidebar-menu a.ativo::before{
+    display:none !important;
+    content:none !important;
+}
+
+/* remove rodapé antigo que variava por página */
+html body .ws-sidebar::after,
+html body .ws-sidebar:hover::after{
+    display:none !important;
+    content:none !important;
+}
