@@ -240,7 +240,7 @@ function acessoParaSupabase(acesso){
 
 async function supabaseSalvarAcessoNatural(acesso){
     if(!acesso || !acesso.tecnico || !acesso.site || !acesso.ticket){
-        return acesso
+        throw new Error("Acesso incompleto para salvar no Supabase.")
     }
 
     const filtro = filtroNaturalAcesso(acesso)
@@ -249,8 +249,9 @@ async function supabaseSalvarAcessoNatural(acesso){
     })
 
     if(!consulta.ok){
-        console.error("Erro ao consultar acesso por chave natural:", await consulta.text())
-        return acesso
+        const detalhe = await consulta.text()
+        console.error("Erro ao consultar acesso por chave natural:", detalhe)
+        throw new Error(`Falha ao consultar o Supabase: ${detalhe || consulta.status}`)
     }
 
     const existentes = await consulta.json()
@@ -262,17 +263,19 @@ async function supabaseSalvarAcessoNatural(acesso){
 
         const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?id=eq.${existentes[0].id}`, {
             method:"PATCH",
-            headers:supabaseHeaders("return=minimal"),
+            headers:supabaseHeaders("return=representation"),
             body:JSON.stringify(registro)
         })
 
         if(!resposta.ok){
-            console.error("Erro ao atualizar acesso por chave natural:", await resposta.text())
+            const detalhe = await resposta.text()
+            console.error("Erro ao atualizar acesso por chave natural:", detalhe)
+            throw new Error(`Falha ao atualizar o acesso no Supabase: ${detalhe || resposta.status}`)
         }
 
         if(existentes.length > 1){
             const idsDuplicados = existentes.slice(1).map(item => item.id).join(",")
-            await fetch(`${SUPABASE_REST_URL}/acessos?id=in.(${idsDuplicados})`, {
+            const respostaDuplicados = await fetch(`${SUPABASE_REST_URL}/acessos?id=in.(${idsDuplicados})`, {
                 method:"PATCH",
                 headers:supabaseHeaders("return=minimal"),
                 body:JSON.stringify({
@@ -280,16 +283,33 @@ async function supabaseSalvarAcessoNatural(acesso){
                     atualizado_em:dataISOAgora()
                 })
             })
+
+            if(!respostaDuplicados.ok){
+                console.warn("Não foi possível arquivar duplicados:", await respostaDuplicados.text())
+            }
         }
     }else{
-        const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?on_conflict=id`, {
+        // O ID do card local pode ser Date.now(), mas o ID definitivo deve ser gerado pelo banco.
+        const registroNovo = {...registro}
+        delete registroNovo.id
+
+        const resposta = await fetch(`${SUPABASE_REST_URL}/acessos`, {
             method:"POST",
-            headers:supabaseHeaders("resolution=merge-duplicates,return=minimal"),
-            body:JSON.stringify([registro])
+            headers:supabaseHeaders("return=representation"),
+            body:JSON.stringify(registroNovo)
         })
 
         if(!resposta.ok){
-            console.error("Erro ao inserir acesso por chave natural:", await resposta.text())
+            const detalhe = await resposta.text()
+            console.error("Erro ao inserir acesso por chave natural:", detalhe)
+            throw new Error(`Falha ao salvar o novo acesso no Supabase: ${detalhe || resposta.status}`)
+        }
+
+        const inseridos = await resposta.json()
+        const salvo = Array.isArray(inseridos) ? inseridos[0] : inseridos
+
+        if(salvo?.id){
+            acesso.id = Number(salvo.id)
         }
     }
 
@@ -1463,18 +1483,49 @@ async function adicionarCartao(){
         dataUltimoMovimento: dataISOAgora()
     }
 
+    const acessosAntes = [...acessos]
     acessos = acessos.filter(item => !mesmoAcessoNatural(item, novoAcesso))
     acessos.unshift(novoAcesso)
 
-    await supabaseSalvarAcessoNatural(novoAcesso)
-    await registrarHistoricoAcesso(novoAcesso, novoAcesso.status, novoAcesso.status === "liberado" ? "novo_acesso_pre_autorizado" : "novo_acesso")
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
-    renderizar()
+    try{
+        mostrarToast("Salvando acesso no Supabase...", "info", "Processando")
 
-    salvarNaBaseAutorizados(novoAcesso, novoAcesso.status === "liberado" ? "autorizado" : "aguardando")
+        await supabaseSalvarAcessoNatural(novoAcesso)
 
-    limparFormulario()
-    fecharFormatador()
+        // Se o Supabase gerou um ID definitivo, ele já foi aplicado em novoAcesso.
+        acessos = acessos.map(item => mesmoAcessoNatural(item, novoAcesso) ? novoAcesso : item)
+
+        await registrarHistoricoAcesso(
+            novoAcesso,
+            novoAcesso.status,
+            novoAcesso.status === "liberado" ? "novo_acesso_pre_autorizado" : "novo_acesso"
+        )
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
+        renderizar()
+
+        salvarNaBaseAutorizados(
+            novoAcesso,
+            novoAcesso.status === "liberado" ? "autorizado" : "aguardando"
+        )
+
+        mostrarToast("Acesso salvo com sucesso.", "sucesso", "Sucesso")
+        limparFormulario()
+        fecharFormatador()
+    }catch(erro){
+        console.error("Erro ao criar acesso:", erro)
+
+        // Não deixa um card apenas local fingindo que foi salvo.
+        acessos = acessosAntes
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
+        renderizar()
+
+        mostrarToast(
+            erro?.message || "Não foi possível salvar o acesso no Supabase.",
+            "erro",
+            "Acesso não salvo"
+        )
+    }
 }
 
 async function alterarStatus(id,status){
