@@ -186,12 +186,53 @@ function sairSistema(){
 
 
 
+
+async function supabaseFetchComSessao(url, opcoes = {}, prefer = ""){
+    const montarOpcoes = () => {
+        const headers = {
+            ...supabaseHeaders(prefer),
+            ...(opcoes.headers || {})
+        }
+
+        return {
+            ...opcoes,
+            headers
+        }
+    }
+
+    let resposta = await fetch(url, montarOpcoes())
+
+    // PGRST303 / 401 normalmente significa JWT expirado.
+    if(resposta.status === 401){
+        let detalhe = ""
+        try{
+            detalhe = await resposta.clone().text()
+        }catch(erro){}
+
+        if(/jwt expired|PGRST303|token.*expired/i.test(detalhe) || resposta.status === 401){
+            const renovou = await renovarSessao()
+
+            if(renovou){
+                resposta = await fetch(url, montarOpcoes())
+            }
+        }
+    }
+
+    return resposta
+}
+
 async function supabaseListarAcessos(){
-    const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?select=*&order=created_at.desc`, {
-        headers: supabaseHeaders()
-    });
-    if(!resposta.ok){ throw new Error("Não foi possível carregar acessos do Supabase"); }
-    const dados = await resposta.json();
+    const resposta = await supabaseFetchComSessao(
+        `${SUPABASE_REST_URL}/acessos?select=*&order=created_at.desc`
+    )
+
+    if(!resposta.ok){
+        const detalhe = await resposta.text().catch(()=>"")
+        throw new Error(`Não foi possível carregar acessos do Supabase: ${detalhe || resposta.status}`)
+    }
+
+    const dados = await resposta.json()
+
     return dados
         .filter(item => item.status !== "arquivado")
         .map(item => ({
@@ -213,7 +254,7 @@ async function supabaseListarAcessos(){
             atualizadoEm: item.atualizado_em || "",
             ordemColuna: Number(item.ordem_coluna || 0) || Number(item.id || 0),
             dataUltimoMovimento: item.data_ultimo_movimento || item.atualizado_em || item.created_at || ""
-        }));
+        }))
 }
 
 function acessoParaSupabase(acesso){
@@ -244,9 +285,10 @@ async function supabaseSalvarAcessoNatural(acesso){
     }
 
     const filtro = filtroNaturalAcesso(acesso)
-    const consulta = await fetch(`${SUPABASE_REST_URL}/acessos?select=id,created_at&${filtro}&order=created_at.desc`, {
-        headers:supabaseHeaders()
-    })
+
+    const consulta = await supabaseFetchComSessao(
+        `${SUPABASE_REST_URL}/acessos?select=id,created_at&${filtro}&order=created_at.desc`
+    )
 
     if(!consulta.ok){
         const detalhe = await consulta.text()
@@ -261,11 +303,14 @@ async function supabaseSalvarAcessoNatural(acesso){
         registro.id = Number(existentes[0].id)
         acesso.id = Number(existentes[0].id)
 
-        const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?id=eq.${existentes[0].id}`, {
-            method:"PATCH",
-            headers:supabaseHeaders("return=representation"),
-            body:JSON.stringify(registro)
-        })
+        const resposta = await supabaseFetchComSessao(
+            `${SUPABASE_REST_URL}/acessos?id=eq.${existentes[0].id}`,
+            {
+                method:"PATCH",
+                body:JSON.stringify(registro)
+            },
+            "return=representation"
+        )
 
         if(!resposta.ok){
             const detalhe = await resposta.text()
@@ -275,43 +320,54 @@ async function supabaseSalvarAcessoNatural(acesso){
 
         if(existentes.length > 1){
             const idsDuplicados = existentes.slice(1).map(item => item.id).join(",")
-            const respostaDuplicados = await fetch(`${SUPABASE_REST_URL}/acessos?id=in.(${idsDuplicados})`, {
-                method:"PATCH",
-                headers:supabaseHeaders("return=minimal"),
-                body:JSON.stringify({
-                    status:"arquivado",
-                    atualizado_em:dataISOAgora()
-                })
-            })
+
+            const respostaDuplicados = await supabaseFetchComSessao(
+                `${SUPABASE_REST_URL}/acessos?id=in.(${idsDuplicados})`,
+                {
+                    method:"PATCH",
+                    body:JSON.stringify({
+                        status:"arquivado",
+                        atualizado_em:dataISOAgora()
+                    })
+                },
+                "return=minimal"
+            )
 
             if(!respostaDuplicados.ok){
                 console.warn("Não foi possível arquivar duplicados:", await respostaDuplicados.text())
             }
         }
-    }else{
-        // O ID do card local pode ser Date.now(), mas o ID definitivo deve ser gerado pelo banco.
-        const registroNovo = {...registro}
-        delete registroNovo.id
 
-        const resposta = await fetch(`${SUPABASE_REST_URL}/acessos`, {
-            method:"POST",
-            headers:supabaseHeaders("return=representation"),
-            body:JSON.stringify(registroNovo)
-        })
-
-        if(!resposta.ok){
-            const detalhe = await resposta.text()
-            console.error("Erro ao inserir acesso por chave natural:", detalhe)
-            throw new Error(`Falha ao salvar o novo acesso no Supabase: ${detalhe || resposta.status}`)
-        }
-
-        const inseridos = await resposta.json()
-        const salvo = Array.isArray(inseridos) ? inseridos[0] : inseridos
-
-        if(salvo?.id){
-            acesso.id = Number(salvo.id)
-        }
+        return acesso
     }
+
+    const registroNovo = {...registro}
+    delete registroNovo.id
+
+    const resposta = await supabaseFetchComSessao(
+        `${SUPABASE_REST_URL}/acessos`,
+        {
+            method:"POST",
+            body:JSON.stringify(registroNovo)
+        },
+        "return=representation"
+    )
+
+    if(!resposta.ok){
+        const detalhe = await resposta.text()
+        console.error("Erro ao inserir novo acesso:", detalhe)
+        throw new Error(`Falha ao salvar o acesso no Supabase: ${detalhe || resposta.status}`)
+    }
+
+    const salvos = await resposta.json()
+
+    if(!Array.isArray(salvos) || !salvos.length || !salvos[0].id){
+        throw new Error("O Supabase não retornou o ID do acesso salvo.")
+    }
+
+    acesso.id = Number(salvos[0].id)
+    acesso.criadoEm = salvos[0].created_at || acesso.criadoEm
+    acesso.atualizadoEm = salvos[0].atualizado_em || acesso.atualizadoEm
 
     return acesso
 }
@@ -328,34 +384,53 @@ async function supabaseSalvarAcessos(){
 
 async function supabaseAtualizarMovimento(acesso){
     if(!acesso || !acesso.id){
-        return false
+        throw new Error("Acesso inválido para atualização.")
     }
 
-    const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?id=eq.${acesso.id}`, {
-        method:"PATCH",
-        headers:supabaseHeaders("return=minimal"),
-        body:JSON.stringify({
-            status: acesso.status || "aguardando",
-            ordem_coluna: Number(acesso.ordemColuna || Date.now()),
-            data_ultimo_movimento: acesso.dataUltimoMovimento || dataISOAgora(),
-            atualizado_em: acesso.atualizadoEm || dataISOAgora()
-        })
-    })
+    const resposta = await supabaseFetchComSessao(
+        `${SUPABASE_REST_URL}/acessos?id=eq.${acesso.id}`,
+        {
+            method:"PATCH",
+            body:JSON.stringify({
+                status: acesso.status || "aguardando",
+                ordem_coluna: Number(acesso.ordemColuna || Date.now()),
+                data_ultimo_movimento: acesso.dataUltimoMovimento || dataISOAgora(),
+                atualizado_em: acesso.atualizadoEm || dataISOAgora()
+            })
+        },
+        "return=representation"
+    )
 
     if(!resposta.ok){
-        console.error("Erro ao atualizar movimento do acesso:", await resposta.text())
-        return false
+        const detalhe = await resposta.text()
+        console.error("Erro ao atualizar movimento do acesso:", detalhe)
+        throw new Error(`Não foi possível salvar a movimentação: ${detalhe || resposta.status}`)
+    }
+
+    const dados = await resposta.json().catch(()=>[])
+    if(Array.isArray(dados) && dados[0]){
+        acesso.atualizadoEm = dados[0].atualizado_em || acesso.atualizadoEm
+        acesso.dataUltimoMovimento = dados[0].data_ultimo_movimento || acesso.dataUltimoMovimento
+        acesso.ordemColuna = Number(dados[0].ordem_coluna || acesso.ordemColuna)
     }
 
     return true
 }
 
 async function supabaseExcluirAcesso(id){
-    const resposta = await fetch(`${SUPABASE_REST_URL}/acessos?id=eq.${id}`, {
-        method:"DELETE",
-        headers:supabaseHeaders("return=minimal")
-    });
-    if(!resposta.ok){ console.error("Erro ao excluir acesso no Supabase:", await resposta.text()); }
+    const resposta = await supabaseFetchComSessao(
+        `${SUPABASE_REST_URL}/acessos?id=eq.${id}`,
+        {method:"DELETE"},
+        "return=minimal"
+    )
+
+    if(!resposta.ok){
+        const detalhe = await resposta.text()
+        console.error("Erro ao excluir acesso no Supabase:", detalhe)
+        throw new Error(`Não foi possível excluir o acesso: ${detalhe || resposta.status}`)
+    }
+
+    return true
 }
 
 async function supabaseArquivarTodosAcessos(){
@@ -1111,48 +1186,40 @@ function salvar(){
 
 
 function mesclarOrdemLocal(dadosSupabase){
-    const backup = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]")
-    const mapaLocal = new Map()
-
-    backup.forEach(item => {
-        mapaLocal.set(Number(item.id), item)
-    })
-
-    return dadosSupabase.map(item => {
-        const local = mapaLocal.get(Number(item.id))
-
-        if(!local){
-            return item
-        }
-
-        const ordemSupabase = Number(item.ordemColuna || 0)
-        const ordemLocal = Number(local.ordemColuna || 0)
-
-        if(ordemLocal > ordemSupabase){
-            return {
-                ...item,
-                ordemColuna: ordemLocal,
-                dataUltimoMovimento: local.dataUltimoMovimento || item.dataUltimoMovimento || "",
-                atualizadoEm: local.atualizadoEm || item.atualizadoEm || ""
-            }
-        }
-
-        return item
-    })
+    // O Supabase é a única fonte de verdade para status e ordem dos cards.
+    // O localStorage fica apenas como contingência se o banco estiver indisponível.
+    return Array.isArray(dadosSupabase) ? dadosSupabase : []
 }
 
 async function carregar(){
-    try{
-        const dadosSupabase = await supabaseListarAcessos();
-        acessos = mesclarOrdemLocal(dadosSupabase);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos));
-    }catch(erro){
-        console.warn("Carregando acessos do backup local:", erro);
-        const salvo = localStorage.getItem(STORAGE_KEY);
-        acessos = salvo ? JSON.parse(salvo) : [];
+    if(window.__wesaferCarregandoAcessos){
+        window.__wesaferCarregarNovamente = true
+        return
     }
 
-    renderizar();
+    window.__wesaferCarregandoAcessos = true
+
+    try{
+        const dadosSupabase = await supabaseListarAcessos()
+
+        // Supabase sempre vence quando está disponível.
+        acessos = mesclarOrdemLocal(dadosSupabase)
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
+        renderizar()
+    }catch(erro){
+        console.warn("Supabase indisponível. Usando backup local somente para visualização:", erro)
+
+        const salvo = localStorage.getItem(STORAGE_KEY)
+        acessos = salvo ? JSON.parse(salvo) : []
+        renderizar()
+    }finally{
+        window.__wesaferCarregandoAcessos = false
+
+        if(window.__wesaferCarregarNovamente){
+            window.__wesaferCarregarNovamente = false
+            setTimeout(()=>carregar(), 50)
+        }
+    }
 }
 
 function abrirFormatador(){
@@ -1529,50 +1596,90 @@ async function adicionarCartao(){
 }
 
 async function alterarStatus(id,status){
-    let acessoMovido = null
+    const acessosAntes = acessos.map(item => ({...item}))
+    const acessoOriginal = acessosAntes.find(item => item.id === id)
+
+    if(!acessoOriginal){
+        return
+    }
+
     const agoraOrdem = Date.now()
     const agoraIso = dataISOAgora()
 
-    acessos = acessos.map(acesso => {
-        if(acesso.id === id){
-            acesso.status = status
-            acesso.atualizadoEm = agoraIso
-            acesso.ordemColuna = agoraOrdem
-            acesso.dataUltimoMovimento = agoraIso
-            acessoMovido = acesso
+    const acessoMovido = {
+        ...acessoOriginal,
+        status,
+        atualizadoEm: agoraIso,
+        ordemColuna: agoraOrdem,
+        dataUltimoMovimento: agoraIso
+    }
 
-            if(status === "aguardando"){
-                salvarNaBaseAutorizados(acesso, "aguardando")
-            }
+    acessos = acessos.map(acesso =>
+        acesso.id === id ? acessoMovido : acesso
+    )
 
-            if(status === "liberado" || status === "entrada" || status === "saida"){
-                salvarNaBaseAutorizados(acesso, "autorizado")
-            }
-        }
-
-        return acesso
-    })
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
+    // Feedback visual imediato, mas a alteração só é considerada concluída
+    // quando o Supabase confirmar.
     renderizar()
 
-    if(acessoMovido){
+    try{
         await supabaseAtualizarMovimento(acessoMovido)
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
+
+        if(status === "aguardando"){
+            salvarNaBaseAutorizados(acessoMovido, "aguardando")
+        }
+
+        if(status === "liberado" || status === "entrada" || status === "saida"){
+            salvarNaBaseAutorizados(acessoMovido, "autorizado")
+        }
+
         await registrarHistoricoAcesso(acessoMovido, status, "movimento_kanban")
+
+        // Reconsulta o banco para que esta tela fique exatamente igual
+        // às demais estações.
+        agendarSincronizacaoSupabase(80)
+    }catch(erro){
+        console.error("Falha ao mover card:", erro)
+
+        acessos = acessosAntes
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
+        renderizar()
+
+        mostrarToast(
+            erro?.message || "A movimentação não foi salva no Supabase.",
+            "erro",
+            "Movimentação não salva"
+        )
     }
 }
 
 async function remover(id){
     if(!confirm("Deseja remover este cartão do Kanban de Acessos?")){
-        return;
+        return
     }
 
-    acessos = acessos.filter(acesso => acesso.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos));
+    const acessosAntes = acessos.map(item => ({...item}))
 
-    await supabaseExcluirAcesso(id);
+    try{
+        await supabaseExcluirAcesso(id)
 
-    renderizar();
+        acessos = acessos.filter(acesso => acesso.id !== id)
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos))
+        renderizar()
+
+        agendarSincronizacaoSupabase(80)
+    }catch(erro){
+        acessos = acessosAntes
+        renderizar()
+
+        mostrarToast(
+            erro?.message || "Não foi possível excluir o acesso no Supabase.",
+            "erro",
+            "Exclusão não realizada"
+        )
+    }
 }
 
 function confirmarEncerrarPlantao(){
@@ -2100,6 +2207,78 @@ function configurarMenuUsuario(){
     })
 }
 
+
+let realtimeAcessosClient = null
+let realtimeAcessosChannel = null
+let timerSincronizacaoSupabase = null
+
+function agendarSincronizacaoSupabase(atraso = 120){
+    clearTimeout(timerSincronizacaoSupabase)
+
+    timerSincronizacaoSupabase = setTimeout(() => {
+        carregar()
+    }, atraso)
+}
+
+async function iniciarRealtimeAcessos(){
+    if(!window.supabase?.createClient){
+        console.warn("Supabase Realtime indisponível. Polling de 5 segundos continuará ativo.")
+        return
+    }
+
+    try{
+        if(realtimeAcessosChannel && realtimeAcessosClient){
+            try{
+                await realtimeAcessosClient.removeChannel(realtimeAcessosChannel)
+            }catch(erro){}
+        }
+
+        realtimeAcessosClient = window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY,
+            {
+                auth:{
+                    persistSession:false,
+                    autoRefreshToken:false,
+                    detectSessionInUrl:false
+                }
+            }
+        )
+
+        const sessao = obterSessao()
+        if(sessao?.access_token && realtimeAcessosClient.realtime?.setAuth){
+            realtimeAcessosClient.realtime.setAuth(sessao.access_token)
+        }
+
+        realtimeAcessosChannel = realtimeAcessosClient
+            .channel("wesafer-acessos-kanban")
+            .on(
+                "postgres_changes",
+                {
+                    event:"*",
+                    schema:"public",
+                    table:"acessos"
+                },
+                () => {
+                    // O evento apenas dispara uma reconsulta.
+                    // A REST API continua sendo a fonte canônica da tela.
+                    agendarSincronizacaoSupabase(80)
+                }
+            )
+            .subscribe(status => {
+                if(status === "SUBSCRIBED"){
+                    console.info("WeSafer Realtime: conectado.")
+                }
+
+                if(status === "CHANNEL_ERROR" || status === "TIMED_OUT"){
+                    console.warn("WeSafer Realtime:", status, "— polling de segurança continua ativo.")
+                }
+            })
+    }catch(erro){
+        console.warn("Não foi possível iniciar Supabase Realtime:", erro)
+    }
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
     const logado = await verificarLogin()
 
@@ -2114,12 +2293,17 @@ window.addEventListener("DOMContentLoaded", async () => {
 configurarMenuUsuario()
     atualizarDataPlantao()
     limparHistoricoAntigo()
-    carregar()
+    await carregar()
+    await iniciarRealtimeAcessos()
 })
 
 async function atualizarAcessosAutomaticamente(){
     const box = document.getElementById("boxFormatador")
-    if(box && box.open){ return }
+
+    // Não interrompe preenchimento de formulário aberto.
+    if(box && (box.open || box.classList?.contains("aberto"))){
+        return
+    }
 
     await carregar()
 }
